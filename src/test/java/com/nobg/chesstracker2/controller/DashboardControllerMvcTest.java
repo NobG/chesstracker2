@@ -1,6 +1,7 @@
 package com.nobg.chesstracker2.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -13,14 +14,17 @@ import com.nobg.chesstracker2.repository.DailyNoteRepository;
 import com.nobg.chesstracker2.repository.DailyTrainingEntryRepository;
 import com.nobg.chesstracker2.repository.MotivationQuoteRepository;
 import com.nobg.chesstracker2.repository.TrainingCategoryRepository;
+import com.nobg.chesstracker2.service.AppDateProvider;
 import com.nobg.chesstracker2.service.MotivationQuoteService;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -29,6 +33,8 @@ import org.springframework.test.web.servlet.MvcResult;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class DashboardControllerMvcTest {
+
+    private static final LocalDate APP_TODAY = LocalDate.of(2026, 6, 9);
 
     private static final List<String> AIMCHESS_CATEGORIES = List.of(
             "Advantage Capitalization",
@@ -78,8 +84,15 @@ class DashboardControllerMvcTest {
     @Autowired
     private MotivationQuoteService quoteService;
 
+    @MockBean
+    private AppDateProvider appDateProvider;
+
     @BeforeEach
     void cleanEntries() {
+        when(appDateProvider.today()).thenReturn(APP_TODAY);
+        when(appDateProvider.currentMonth()).thenReturn(YearMonth.from(APP_TODAY));
+        when(appDateProvider.currentIsoYear()).thenReturn(2026);
+        when(appDateProvider.currentIsoWeek()).thenReturn(24);
         entryRepository.deleteAll();
         noteRepository.deleteAll();
     }
@@ -90,7 +103,7 @@ class DashboardControllerMvcTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String html = result.getResponse().getContentAsString();
-        String weeklyQuote = quoteService.getWeeklyQuote(LocalDate.now()).quoteText();
+        String weeklyQuote = quoteService.getWeeklyQuote(APP_TODAY).quoteText();
 
         assertThat(html)
                 .contains(
@@ -175,7 +188,7 @@ class DashboardControllerMvcTest {
     @Test
     void todayMarksWorkedCategoryAndKeepsSortedFieldBinding() throws Exception {
         TrainingCategory tactics = tactics();
-        LocalDate today = LocalDate.now();
+        LocalDate today = APP_TODAY;
         DailyTrainingEntry entry = new DailyTrainingEntry();
         entry.setTrainingDate(today);
         entry.setCategory(tactics);
@@ -237,14 +250,33 @@ class DashboardControllerMvcTest {
                 "class=\"app-hero\"",
                 "class=\"app-logo\"",
                 "Wochenspruch",
-                quoteService.getWeeklyQuote(LocalDate.now()).quoteText()
+                quoteService.getWeeklyQuote(APP_TODAY).quoteText()
         );
+    }
+
+    @Test
+    void currentWeekRedirectUsesAppDateProvider() throws Exception {
+        when(appDateProvider.currentIsoYear()).thenReturn(2027);
+        when(appDateProvider.currentIsoWeek()).thenReturn(1);
+
+        mockMvc.perform(get("/week"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/week/2027/1"));
+    }
+
+    @Test
+    void currentMonthRedirectUsesAppDateProvider() throws Exception {
+        when(appDateProvider.currentMonth()).thenReturn(YearMonth.of(2027, 1));
+
+        mockMvc.perform(get("/month"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/month/2027/1"));
     }
 
     @Test
     void postTodayEntriesBindsIndexedEntryFieldsAndUpdatesExistingEntry() throws Exception {
         TrainingCategory tactics = tactics();
-        LocalDate today = LocalDate.now();
+        LocalDate today = APP_TODAY;
 
         mockMvc.perform(post("/today/entries")
                         .param("entries[0].categoryId", tactics.getId().toString())
@@ -293,7 +325,7 @@ class DashboardControllerMvcTest {
     @Test
     void completedTodayIsLockedAndPostEntriesCannotChangeIt() throws Exception {
         TrainingCategory tactics = tactics();
-        LocalDate today = LocalDate.now();
+        LocalDate today = APP_TODAY;
 
         mockMvc.perform(post("/today/complete")
                         .param("entries[0].categoryId", tactics.getId().toString())

@@ -30,6 +30,8 @@ services:
       chesstracker2-db:
         condition: service_healthy
     environment:
+      TZ: Europe/Berlin
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=Europe/Berlin"
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
       SPRING_DATASOURCE_URL: jdbc:postgresql://127.0.0.1:15432/${POSTGRES_DB:-chesstracker2}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-chesstracker2}

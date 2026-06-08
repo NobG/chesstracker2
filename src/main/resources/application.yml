@@ -1,6 +1,9 @@
 server:
   port: ${SERVER_PORT:8080}
 
+chesstracker2:
+  time-zone: Europe/Berlin
+
 spring:
   application:
     name: chesstracker2

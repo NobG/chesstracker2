@@ -1,11 +1,11 @@
 package com.nobg.chesstracker2.controller;
 
 import com.nobg.chesstracker2.dto.TrainingDayForm;
+import com.nobg.chesstracker2.service.AppDateProvider;
 import com.nobg.chesstracker2.service.StatsService;
 import com.nobg.chesstracker2.service.TrainingEntryService;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.temporal.IsoFields;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,10 +19,16 @@ public class DashboardController {
 
     private final TrainingEntryService trainingEntryService;
     private final StatsService statsService;
+    private final AppDateProvider appDateProvider;
 
-    public DashboardController(TrainingEntryService trainingEntryService, StatsService statsService) {
+    public DashboardController(
+            TrainingEntryService trainingEntryService,
+            StatsService statsService,
+            AppDateProvider appDateProvider
+    ) {
         this.trainingEntryService = trainingEntryService;
         this.statsService = statsService;
+        this.appDateProvider = appDateProvider;
     }
 
     @GetMapping("/")
@@ -32,7 +38,7 @@ public class DashboardController {
 
     @GetMapping("/today")
     public String today(Model model) {
-        var view = trainingEntryService.todayView(LocalDate.now());
+        var view = trainingEntryService.todayView(appDateProvider.today());
         model.addAttribute("pageTitle", "Heute");
         model.addAttribute("saveAction", "/today/entries");
         model.addAttribute("completeAction", "/today/complete");
@@ -44,7 +50,7 @@ public class DashboardController {
     @PostMapping("/today/entries")
     public String saveToday(@ModelAttribute("form") TrainingDayForm form, RedirectAttributes redirectAttributes) {
         try {
-            boolean saved = trainingEntryService.saveDay(LocalDate.now(), form);
+            boolean saved = trainingEntryService.saveDay(appDateProvider.today(), form);
             if (saved) {
                 redirectAttributes.addFlashAttribute("successMessage", "Trainingstag gespeichert.");
             } else {
@@ -59,7 +65,7 @@ public class DashboardController {
     @PostMapping("/today/complete")
     public String completeToday(@ModelAttribute("form") TrainingDayForm form, RedirectAttributes redirectAttributes) {
         try {
-            boolean completed = trainingEntryService.completeDay(LocalDate.now(), form);
+            boolean completed = trainingEntryService.completeDay(appDateProvider.today(), form);
             if (completed) {
                 redirectAttributes.addFlashAttribute("successMessage", "Aimchess Training abgeschlossen.");
             } else {
@@ -114,10 +120,7 @@ public class DashboardController {
 
     @GetMapping("/week")
     public String currentWeek() {
-        LocalDate today = LocalDate.now();
-        int year = today.get(IsoFields.WEEK_BASED_YEAR);
-        int week = today.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-        return "redirect:/week/" + year + "/" + week;
+        return "redirect:/week/" + appDateProvider.currentIsoYear() + "/" + appDateProvider.currentIsoWeek();
     }
 
     @GetMapping("/week/{year}/{week}")
@@ -129,7 +132,7 @@ public class DashboardController {
 
     @GetMapping("/month")
     public String currentMonth() {
-        YearMonth month = YearMonth.now();
+        YearMonth month = appDateProvider.currentMonth();
         return "redirect:/month/" + month.getYear() + "/" + month.getMonthValue();
     }
 

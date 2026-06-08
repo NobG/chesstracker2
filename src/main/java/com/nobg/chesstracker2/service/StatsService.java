@@ -31,15 +31,18 @@ public class StatsService {
     private final DailyTrainingEntryRepository entryRepository;
     private final TrainingCategoryRepository categoryRepository;
     private final DailyNoteRepository noteRepository;
+    private final AppDateProvider appDateProvider;
 
     public StatsService(
             DailyTrainingEntryRepository entryRepository,
             TrainingCategoryRepository categoryRepository,
-            DailyNoteRepository noteRepository
+            DailyNoteRepository noteRepository,
+            AppDateProvider appDateProvider
     ) {
         this.entryRepository = entryRepository;
         this.categoryRepository = categoryRepository;
         this.noteRepository = noteRepository;
+        this.appDateProvider = appDateProvider;
     }
 
     @Transactional(readOnly = true)
@@ -121,7 +124,7 @@ public class StatsService {
 
     @Transactional(readOnly = true)
     public List<CategoryStatViewModel> categoryOverview() {
-        LocalDate end = LocalDate.now();
+        LocalDate end = appDateProvider.today();
         LocalDate start = end.minusYears(5);
         return categoryStats(trainedBetween(start, end));
     }

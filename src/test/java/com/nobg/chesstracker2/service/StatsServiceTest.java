@@ -22,7 +22,8 @@ class StatsServiceTest {
     private final DailyTrainingEntryRepository entryRepository = org.mockito.Mockito.mock(DailyTrainingEntryRepository.class);
     private final TrainingCategoryRepository categoryRepository = org.mockito.Mockito.mock(TrainingCategoryRepository.class);
     private final DailyNoteRepository noteRepository = org.mockito.Mockito.mock(DailyNoteRepository.class);
-    private final StatsService service = new StatsService(entryRepository, categoryRepository, noteRepository);
+    private final AppDateProvider appDateProvider = org.mockito.Mockito.mock(AppDateProvider.class);
+    private final StatsService service = new StatsService(entryRepository, categoryRepository, noteRepository, appDateProvider);
 
     @Test
     void buildsWeeklyStats() {
