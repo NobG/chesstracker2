@@ -19,3 +19,6 @@
 - Export als CSV
 - Kalenderansicht
 - Verbesserte Validierung mit Inline-Fehlern
+- Optional TLS-Automatisierung fuer nginx/certbot dokumentieren
+- Restore-Prozess auf Staging-System testen
+- Docker-Image-Publishing ueber GitHub Actions pruefen

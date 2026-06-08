@@ -1,5 +1,5 @@
 [Unit]
-Description=chesstracker Aimchess training tracker
+Description=chesstracker Java service example
 After=network.target postgresql.service
 
 [Service]

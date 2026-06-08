@@ -9,23 +9,37 @@ Privates Webtool zum Tracken des taeglichen Aimchess-Trainings. Der MVP fokussie
 - Spring Data JPA
 - PostgreSQL
 - Flyway
+- Docker Compose fuer den empfohlenen Betrieb
 - nginx als Reverse Proxy auf Ubuntu
 
-## Lokaler Start
+## Docker-Schnellstart
+
+Der empfohlene Betrieb ist Docker Compose. Die Spring-Boot-App laeuft im Container `chesstracker-app`, PostgreSQL im Container `chesstracker-db`. Daten liegen dauerhaft im Docker Volume `chesstracker_pgdata`. nginx kann optional auf dem Host laufen und auf `127.0.0.1:8080` weiterleiten.
+
+```bash
+cp .env.example .env
+vi .env
+docker compose up -d --build
+docker compose logs -f chesstracker-app
+```
+
+Wichtig: `POSTGRES_PASSWORD` und `SPRING_DATASOURCE_PASSWORD` muessen identisch sein, solange derselbe Datenbanknutzer verwendet wird.
+
+Ausfuehrliche Ubuntu-Anleitung:
+
+```text
+docs/INSTALL_UBUNTU_DOCKER.md
+```
+
+## Lokale Entwicklung ohne Docker-App
 
 Voraussetzungen:
 
 - Java 21
 - Maven Wrapper (`./mvnw` oder `mvnw.cmd`)
-- Docker Compose (optional fuer lokale PostgreSQL-Entwicklung)
+- PostgreSQL lokal oder per Docker Compose
 
-Lokale PostgreSQL-Entwicklung:
-
-```bash
-docker compose up -d postgres
-```
-
-Die Standard-Dev-Konfiguration nutzt dann:
+Die Standard-Dev-Konfiguration nutzt:
 
 - Datenbank: `chesstracker`
 - Benutzer: `chesstracker`
@@ -47,9 +61,9 @@ Produktiv/Deployment:
 
 ```bash
 export SPRING_PROFILES_ACTIVE=prod
-export DB_URL=jdbc:postgresql://localhost:5432/chesstracker
-export DB_USER=chesstracker
-export DB_PASSWORD=change-me
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/chesstracker
+export SPRING_DATASOURCE_USERNAME=chesstracker
+export SPRING_DATASOURCE_PASSWORD=change-me
 ./mvnw spring-boot:run
 ```
 
@@ -62,9 +76,9 @@ Die zentrale Konfiguration liegt in `src/main/resources/application.yml`.
 Wichtige Umgebungsvariablen:
 
 - `SERVER_PORT`
-- `DB_URL`
-- `DB_USER`
-- `DB_PASSWORD`
+- `SPRING_DATASOURCE_URL`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`
 - `SPRING_PROFILES_ACTIVE=dev|prod`
 
 PostgreSQL wird fuer `dev` und `prod` verwendet. H2 ist bewusst nur als Test-Dependency gescoped und landet nicht im normalen Spring-Boot-Artefakt. Dadurch bleiben Repository- und Service-Tests lokal reproduzierbar, waehrend die laufende Anwendung dieselbe Datenbankklasse nutzt wie die Zielumgebung.
@@ -90,20 +104,15 @@ Das Artefakt liegt danach unter `target/chesstracker-0.1.0-SNAPSHOT.jar`.
 
 Beispiele liegen in `deploy/`:
 
-- `chesstracker.service`
+- `chesstracker-docker.service`
+- `chesstracker-java.service.example`
 - `nginx-chesstracker.conf`
 - `env.example`
 
-Typischer Ablauf:
+Docker Compose ist die empfohlene Betriebsart. Die vollstaendige Schritt-fuer-Schritt-Anleitung liegt in:
 
-```bash
-sudo useradd --system --home /opt/chesstracker --shell /usr/sbin/nologin chesstracker
-sudo mkdir -p /opt/chesstracker
-sudo cp target/chesstracker-0.1.0-SNAPSHOT.jar /opt/chesstracker/chesstracker.jar
-sudo cp deploy/env.example /opt/chesstracker/env
-sudo cp deploy/chesstracker.service /etc/systemd/system/chesstracker.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now chesstracker
+```text
+docs/INSTALL_UBUNTU_DOCKER.md
 ```
 
 nginx leitet auf den lokalen Spring-Boot-Port weiter. Siehe `deploy/nginx-chesstracker.conf`.
@@ -117,6 +126,14 @@ BASE_URL=http://localhost:8080 ./scripts/smoke-test.sh
 ```
 
 Der Smoke-Test prueft `/today`, `/week`, `/month`, `/categories`, die HTTP-Statuscodes sowie den Copy-Block und eine Aimchess-Kategorie. Optional kann mit `BASE_URL` ein anderer Host festgelegt werden.
+
+Docker-Smoke-Test:
+
+```bash
+./scripts/smoke-test-docker.sh
+```
+
+Dieser Test prueft Compose-Konfiguration, Containerstart, HTTP-Endpunkte und PostgreSQL-Bereitschaft. Er wurde nicht auf dem Ubuntu-Zielserver durch Codex ausgefuehrt.
 
 ## Projektplanung
 
