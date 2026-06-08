@@ -2,15 +2,14 @@
 
 ## Stand
 
-Der chesstracker2-MVP ist als neues Spring-Boot-Projekt aufgebaut. Die Anwendung wurde laut Nutzer-Validierung auf dem Zielserver installiert und laeuft unter `https://chesstracker2.litux.de/today`.
+Der chesstracker2-MVP ist abgeschlossen und als Version v1.0.0 markiert. Die Anwendung wurde laut Nutzer-Validierung auf dem Zielserver installiert und laeuft unter `https://chesstracker2.litux.de/today`.
 
 ## Aktueller Fokus
 
-1. Aimchess-Tracking-MVP stabil halten
-2. Hostnet-Compose als aktuell validierte Zielserver-Betriebsart
-3. Deploy-Skript fuer Zielserver-Workflow
-4. Docker-Bridge-Reparatur als technische Folgeaufgabe
-5. Naechster fachlicher Ausbau: automatische Rating-Quellen und Korrelation mit Trainingsdaten pruefen
+1. MVP stabil betreiben
+2. Backup-/Restore-Prozess absichern
+3. Zielserver-Deployment weiter validieren
+4. Danach Version-2-Erweiterungen planen
 
 ## Technische Zielnamen
 
@@ -33,10 +32,19 @@ Der chesstracker2-MVP ist als neues Spring-Boot-Projekt aufgebaut. Die Anwendung
 - Story 03: umgesetzt
 - Story 04: umgesetzt
 - Story 05: umgesetzt
-- Story 06-08: umgesetzt als MVP-Grundlage
-- Story 09: Docker-Compose-Deployment vorbereitet und Zielserver-Hostnet-Betrieb dokumentiert
-- Story 10: Smoke-Tests fuer App, Docker und Hostnet-Betrieb vorbereitet; Hostnet-Deploy-Skript ergaenzt
+- Story 06: umgesetzt
+- Story 07: umgesetzt
+- Story 08: umgesetzt
+- Story 09: umgesetzt
+- Story 10: umgesetzt
 - Story 11: Rating-Snapshots umgesetzt
+- MVP: abgeschlossen
+- Version: `v1.0.0`
+- Abschlussdatum: 2026-06-08
+
+## MVP-Abschluss v1.0.0
+
+Der MVP ist fachlich abgeschlossen. Weitere Ideen wie automatische Rating-Quellen, chess-results, Turniermodul, Partienlog, CSV-Export, Kalenderansicht und verbesserte Tagesbewertung bleiben im Backlog fuer spaetere Versionen.
 
 ## Hinweis
 
