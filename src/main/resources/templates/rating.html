@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${pageTitle})}"></head>
+<body>
+<header th:replace="~{fragments :: topnav}"></header>
+<main class="shell">
+    <section class="page-heading">
+        <p class="eyebrow">Spielstaerke</p>
+        <h1>Rating</h1>
+        <p>Manuelle Snapshots deiner Ratingstaende, sortiert vom neuesten zum aeltesten Eintrag.</p>
+    </section>
+
+    <div class="alert success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+    <section class="panel">
+        <div class="section-title">
+            <div>
+                <p class="eyebrow">Snapshot</p>
+                <h2>Ratingstand erfassen</h2>
+            </div>
+        </div>
+        <form class="rating-form" method="post" th:action="@{/rating}" th:object="${form}">
+            <div class="rating-grid">
+                <label>Datum
+                    <input type="date" th:field="*{snapshotDate}" required>
+                </label>
+                <label>Lichess Blitz
+                    <input type="number" min="0" th:field="*{lichessBlitz}" placeholder="1850">
+                </label>
+                <label>Lichess Rapid
+                    <input type="number" min="0" th:field="*{lichessRapid}" placeholder="1900">
+                </label>
+                <label>Lichess Classical
+                    <input type="number" min="0" th:field="*{lichessClassical}" placeholder="1950">
+                </label>
+                <label>DWZ
+                    <input type="number" min="0" th:field="*{dwz}" placeholder="1700">
+                </label>
+                <label>FIDE Elo
+                    <input type="number" min="0" th:field="*{fideElo}" placeholder="1800">
+                </label>
+            </div>
+            <label class="rating-note">Notiz
+                <textarea rows="3" th:field="*{note}" placeholder="Turnier, Trainingsphase oder Kontext"></textarea>
+            </label>
+            <button class="primary-button" type="submit">Speichern</button>
+        </form>
+    </section>
+
+    <section class="metric-grid" th:if="${!view.changes().isEmpty()}">
+        <article class="metric-card change-card" th:each="change : ${view.changes()}">
+            <span th:text="${change.label()}">Lichess Blitz</span>
+            <strong th:classappend="${change.difference() > 0 ? ' change-positive' : change.difference() < 0 ? ' change-negative' : ''}"
+                    th:text="${change.displayDifference()}">+0</strong>
+        </article>
+    </section>
+
+    <section class="panel">
+        <div class="section-title">
+            <div>
+                <p class="eyebrow">Verlauf</p>
+                <h2>Letzte Rating-Snapshots</h2>
+            </div>
+        </div>
+        <p th:if="${view.snapshots().isEmpty()}">Noch keine Rating-Snapshots erfasst.</p>
+        <table th:if="${!view.snapshots().isEmpty()}">
+            <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Lichess Blitz</th>
+                <th>Lichess Rapid</th>
+                <th>Lichess Classical</th>
+                <th>DWZ</th>
+                <th>FIDE Elo</th>
+                <th>Notiz</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="snapshot : ${view.snapshots()}">
+                <td th:text="${snapshot.snapshotDate()}">2026-06-08</td>
+                <td th:text="${snapshot.lichessBlitz() == null ? '-' : snapshot.lichessBlitz()}">-</td>
+                <td th:text="${snapshot.lichessRapid() == null ? '-' : snapshot.lichessRapid()}">-</td>
+                <td th:text="${snapshot.lichessClassical() == null ? '-' : snapshot.lichessClassical()}">-</td>
+                <td th:text="${snapshot.dwz() == null ? '-' : snapshot.dwz()}">-</td>
+                <td th:text="${snapshot.fideElo() == null ? '-' : snapshot.fideElo()}">-</td>
+                <td th:text="${snapshot.note() == null ? '-' : snapshot.note()}">-</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

@@ -270,6 +270,28 @@ textarea {
     margin-bottom: 12px;
 }
 
+.rating-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rating-note {
+    margin-top: 12px;
+}
+
+.change-card strong {
+    color: var(--text);
+}
+
+.change-card strong.change-positive {
+    color: var(--accent);
+}
+
+.change-card strong.change-negative {
+    color: var(--bad);
+}
+
 .switch {
     align-items: center;
     display: flex;
@@ -423,6 +445,10 @@ th {
     }
 
     .field-row {
+        grid-template-columns: 1fr;
+    }
+
+    .rating-grid {
         grid-template-columns: 1fr;
     }
 }
