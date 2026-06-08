@@ -1,0 +1,40 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: chesstracker
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/chesstracker}
+    username: ${DB_USER:chesstracker}
+    password: ${DB_PASSWORD:chesstracker_dev}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/chesstracker}
+    username: ${DB_USER:chesstracker}
+    password: ${DB_PASSWORD:chesstracker_dev}
+  thymeleaf:
+    cache: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  thymeleaf:
+    cache: true

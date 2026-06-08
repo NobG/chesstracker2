@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${pageTitle})}"></head>
+<body>
+<header th:replace="~{fragments :: topnav}"></header>
+<main class="shell">
+    <section class="page-heading">
+        <p class="eyebrow">Aimchess Training</p>
+        <h1 th:text="${view.date}">2026-06-08</h1>
+        <p th:text="${view.summary.automaticSummary}">Heute sind noch keine Einheiten erfasst.</p>
+    </section>
+
+    <div class="alert success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+    <section class="metric-grid">
+        <article class="metric-card">
+            <span>Kategorien</span>
+            <strong th:text="${view.summary.trainedCategoryCount}">0</strong>
+        </article>
+        <article class="metric-card">
+            <span>Aufgaben</span>
+            <strong th:text="${view.summary.successCount} + '/' + ${view.summary.totalCount}">0/0</strong>
+        </article>
+        <article class="metric-card">
+            <span>Quote</span>
+            <strong th:text="${view.summary.successRate == null ? '-' : view.summary.successRate + '%'}">-</strong>
+        </article>
+        <article class="metric-card">
+            <span>Zeit</span>
+            <strong th:text="${view.summary.totalDurationMinutes} + ' min'">0 min</strong>
+        </article>
+    </section>
+
+    <form class="training-form" method="post" th:action="${saveAction}" th:object="${view.form}">
+        <section class="entry-grid">
+            <article class="entry-card" th:each="entry, stat : ${view.entries}">
+                <input type="hidden" th:field="*{entries[__${stat.index}__].categoryId}">
+                <div class="entry-card__head">
+                    <div>
+                        <h2 th:text="${entry.categoryName()}">Tactics</h2>
+                        <p th:text="${entry.description()}">Beschreibung</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" th:field="*{entries[__${stat.index}__].trained}">
+                        <span>Trainiert</span>
+                    </label>
+                </div>
+                <div class="field-row">
+                    <label>Ergebnis
+                        <input th:field="*{entries[__${stat.index}__].result}" placeholder="7/10">
+                    </label>
+                    <label>Score
+                        <input type="number" th:field="*{entries[__${stat.index}__].score}" placeholder="1420">
+                    </label>
+                    <label>Minuten
+                        <input type="number" min="0" th:field="*{entries[__${stat.index}__].durationMinutes}" placeholder="15">
+                    </label>
+                </div>
+                <label>Notiz
+                    <textarea rows="2" th:field="*{entries[__${stat.index}__].note}" placeholder="Was fiel auf?"></textarea>
+                </label>
+            </article>
+        </section>
+
+        <section class="panel">
+            <label>Tagesnotiz
+                <textarea rows="4" th:field="*{dayNote}" placeholder="Kurze Gesamtnotiz fuer den Tag"></textarea>
+            </label>
+            <button class="primary-button" type="submit">Speichern</button>
+        </section>
+    </form>
+
+    <section class="panel copy-panel">
+        <div class="section-title">
+            <div>
+                <p class="eyebrow">ChatGPT</p>
+                <h2>Copy-Block</h2>
+            </div>
+            <button class="secondary-button" type="button" data-copy-target="copy-block">Kopieren</button>
+        </div>
+        <pre id="copy-block" th:text="${view.summary.copyBlock}"></pre>
+    </section>
+</main>
+<script>
+document.querySelectorAll('[data-copy-target]').forEach((button) => {
+    button.addEventListener('click', () => {
+        const target = document.getElementById(button.dataset.copyTarget);
+        navigator.clipboard.writeText(target.textContent);
+        button.textContent = 'Kopiert';
+        setTimeout(() => button.textContent = 'Kopieren', 1400);
+    });
+});
+</script>
+</body>
+</html>

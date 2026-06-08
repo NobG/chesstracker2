@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${pageTitle})}"></head>
+<body>
+<header th:replace="~{fragments :: topnav}"></header>
+<main class="shell">
+    <section class="page-heading">
+        <p class="eyebrow">Monatsstatistik</p>
+        <h1 th:text="${stats.month()} + '/' + ${stats.year()}">Monat</h1>
+        <p th:text="${stats.summary()}">Zusammenfassung</p>
+    </section>
+    <section class="metric-grid">
+        <article class="metric-card"><span>Trainingstage</span><strong th:text="${stats.trainingDays()} + '/' + ${stats.daysInMonth()}">0</strong></article>
+        <article class="metric-card"><span>Konstanz</span><strong th:text="${stats.trainingDayPercentage()} + '%'">0%</strong></article>
+        <article class="metric-card"><span>Quote</span><strong th:text="${stats.successRate() == null ? '-' : stats.successRate() + '%'}">-</strong></article>
+        <article class="metric-card"><span>Zeit</span><strong th:text="${stats.totalDurationMinutes()} + ' min'">0 min</strong></article>
+    </section>
+    <section class="two-column">
+        <div class="panel">
+            <div class="section-title"><h2>Verbesserung</h2></div>
+            <p th:if="${stats.improvedCategories().isEmpty()}">Noch keine klare Verbesserung sichtbar.</p>
+            <ul th:if="${!stats.improvedCategories().isEmpty()}">
+                <li th:each="name : ${stats.improvedCategories()}" th:text="${name}">Tactics</li>
+            </ul>
+        </div>
+        <div class="panel">
+            <div class="section-title"><h2>Rueckgang</h2></div>
+            <p th:if="${stats.declinedCategories().isEmpty()}">Keine deutliche Verschlechterung sichtbar.</p>
+            <ul th:if="${!stats.declinedCategories().isEmpty()}">
+                <li th:each="name : ${stats.declinedCategories()}" th:text="${name}">Calculation</li>
+            </ul>
+        </div>
+    </section>
+    <section class="panel">
+        <div class="section-title"><h2>Kategorieentwicklung</h2></div>
+        <table>
+            <thead><tr><th>Kategorie</th><th>Einheiten</th><th>Aufgaben</th><th>Quote</th><th>Letzter Eintrag</th><th>Trend</th></tr></thead>
+            <tbody>
+            <tr th:each="category : ${stats.categories()}">
+                <td th:text="${category.categoryName()}">Tactics</td>
+                <td th:text="${category.trainingUnits()}">0</td>
+                <td th:text="${category.successCount()} + '/' + ${category.totalCount()}">0/0</td>
+                <td th:text="${category.successRate() == null ? '-' : category.successRate() + '%'}">-</td>
+                <td th:text="${category.lastEntryDate() == null ? '-' : category.lastEntryDate()}">-</td>
+                <td th:text="${category.trend()}">stabil</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

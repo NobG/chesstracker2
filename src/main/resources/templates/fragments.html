@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' - chesstracker'">chesstracker</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="topnav" th:fragment="topnav">
+    <a class="brand" href="/today">chesstracker</a>
+    <nav>
+        <a href="/today">Heute</a>
+        <a href="/week">Woche</a>
+        <a href="/month">Monat</a>
+        <a href="/categories">Kategorien</a>
+    </nav>
+</header>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${pageTitle})}"></head>
+<body>
+<header th:replace="~{fragments :: topnav}"></header>
+<main class="shell">
+    <section class="page-heading">
+        <p class="eyebrow">Wochenstatistik</p>
+        <h1 th:text="'KW ' + ${stats.week()} + ' / ' + ${stats.year()}">KW</h1>
+        <p th:text="${stats.summary()}">Zusammenfassung</p>
+    </section>
+    <section class="metric-grid">
+        <article class="metric-card"><span>Trainingstage</span><strong th:text="${stats.trainingDays()}">0</strong></article>
+        <article class="metric-card"><span>Aufgaben</span><strong th:text="${stats.totalTasks()}">0</strong></article>
+        <article class="metric-card"><span>Quote</span><strong th:text="${stats.successRate() == null ? '-' : stats.successRate() + '%'}">-</strong></article>
+        <article class="metric-card"><span>Zeit</span><strong th:text="${stats.totalDurationMinutes()} + ' min'">0 min</strong></article>
+    </section>
+    <section class="two-column">
+        <div class="panel">
+            <div class="section-title"><h2>Tage</h2></div>
+            <table>
+                <thead><tr><th>Datum</th><th>Kategorien</th><th>Aufgaben</th><th>Quote</th><th>Zeit</th></tr></thead>
+                <tbody>
+                <tr th:each="day : ${stats.days()}">
+                    <td th:text="${day.date()}">2026-06-08</td>
+                    <td th:text="${day.trainedCategories()}">0</td>
+                    <td th:text="${day.totalTasks()}">0</td>
+                    <td th:text="${day.successRate() == null ? '-' : day.successRate() + '%'}">-</td>
+                    <td th:text="${day.durationMinutes()} + ' min'">0 min</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="panel">
+            <div class="section-title"><h2>Einordnung</h2></div>
+            <div class="insight-list">
+                <p><span>Beste Kategorie</span><strong th:text="${stats.bestCategory()}">-</strong></p>
+                <p><span>Schwaechste Kategorie</span><strong th:text="${stats.weakestCategory()}">-</strong></p>
+            </div>
+        </div>
+    </section>
+    <section class="panel">
+        <div class="section-title"><h2>Kategorien</h2></div>
+        <table>
+            <thead><tr><th>Kategorie</th><th>Einheiten</th><th>Aufgaben</th><th>Quote</th><th>Trend</th></tr></thead>
+            <tbody>
+            <tr th:each="category : ${stats.categories()}">
+                <td th:text="${category.categoryName()}">Tactics</td>
+                <td th:text="${category.trainingUnits()}">0</td>
+                <td th:text="${category.successCount()} + '/' + ${category.totalCount()}">0/0</td>
+                <td th:text="${category.successRate() == null ? '-' : category.successRate() + '%'}">-</td>
+                <td th:text="${category.trend()}">stabil</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>
