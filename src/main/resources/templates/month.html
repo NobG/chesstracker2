@@ -48,6 +48,7 @@
                             <use th:href="${'#icon-category-' + category.iconKey()}"></use>
                         </svg>
                         <span th:text="${category.categoryName()}">Tactics</span>
+                        <span class="beta-badge" th:if="${category.beta()}">Beta</span>
                     </span>
                 </td>
                 <td th:text="${category.trainingUnits()}">0</td>

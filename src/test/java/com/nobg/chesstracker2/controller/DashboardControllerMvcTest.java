@@ -13,6 +13,7 @@ import com.nobg.chesstracker2.repository.DailyNoteRepository;
 import com.nobg.chesstracker2.repository.DailyTrainingEntryRepository;
 import com.nobg.chesstracker2.repository.TrainingCategoryRepository;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,36 @@ import org.springframework.test.web.servlet.MvcResult;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class DashboardControllerMvcTest {
+
+    private static final List<String> AIMCHESS_CATEGORIES = List.of(
+            "Advantage Capitalization",
+            "Tactics",
+            "Opening Improver",
+            "Practice visualization",
+            "Blunder Preventer",
+            "360 Trainer",
+            "Intuition Trainer",
+            "Retry Mistakes",
+            "Endgame",
+            "Defender",
+            "Time Trainer",
+            "Blindfold Tactics",
+            "Checkmate Patterns",
+            "Opening Trainer",
+            "Tactics Challenge"
+    );
+
+    private static final List<String> OLD_CATEGORY_NAMES = List.of(
+            "Calculation",
+            "Openings",
+            "Strategy",
+            "Advantage Conversion",
+            "Visualization",
+            "Endgames",
+            "Defense",
+            "Blunder Prevention",
+            "Time Management"
+    );
 
     @Autowired
     private MockMvc mockMvc;
@@ -79,6 +110,45 @@ class DashboardControllerMvcTest {
     }
 
     @Test
+    void migrationProvidesExactActiveAimchessCategories() {
+        List<String> activeCategories = categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc().stream()
+                .map(TrainingCategory::getName)
+                .toList();
+
+        assertThat(activeCategories).containsExactlyElementsOf(AIMCHESS_CATEGORIES);
+    }
+
+    @Test
+    void todayShowsExactActiveAimchessCategoriesWithIconsAndBetaBadge() throws Exception {
+        MvcResult result = mockMvc.perform(get("/today"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(AIMCHESS_CATEGORIES.toArray(String[]::new));
+        assertThat(html).doesNotContain(OLD_CATEGORY_NAMES.toArray(String[]::new));
+        assertThat(html).contains(
+                "href=\"#icon-category-flag\"",
+                "href=\"#icon-category-target\"",
+                "href=\"#icon-category-book-up\"",
+                "href=\"#icon-category-eye\"",
+                "href=\"#icon-category-warning\"",
+                "href=\"#icon-category-rotate\"",
+                "href=\"#icon-category-spark\"",
+                "href=\"#icon-category-retry\"",
+                "href=\"#icon-category-rook\"",
+                "href=\"#icon-category-shield\"",
+                "href=\"#icon-category-clock\"",
+                "href=\"#icon-category-eye-off\"",
+                "href=\"#icon-category-king\"",
+                "href=\"#icon-category-book\"",
+                "href=\"#icon-category-bolt\"",
+                "class=\"beta-badge\"",
+                "Beta"
+        );
+    }
+
+    @Test
     void categoriesRenderFaviconAndCategoryIcons() throws Exception {
         MvcResult result = mockMvc.perform(get("/categories"))
                 .andExpect(status().isOk())
@@ -91,6 +161,8 @@ class DashboardControllerMvcTest {
                         "class=\"category-label\"",
                         "class=\"category-icon\"",
                         "href=\"#icon-category-target\"",
+                        "class=\"beta-badge\"",
+                        "Tactics Challenge",
                         "Tactics"
                 );
     }

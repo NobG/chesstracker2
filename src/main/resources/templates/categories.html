@@ -18,6 +18,7 @@
                             <use th:href="${'#icon-category-' + category.iconKey()}"></use>
                         </svg>
                         <span th:text="${category.categoryName()}">Tactics</span>
+                        <span class="beta-badge" th:if="${category.beta()}">Beta</span>
                     </h2>
                     <p th:text="'Trend: ' + ${category.trend()}">Trend</p>
                 </div>

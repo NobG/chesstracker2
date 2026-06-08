@@ -166,8 +166,10 @@ public class StatsService {
             byCategory.put(category.getKey(), new ArrayList<>());
         }
         for (DailyTrainingEntry entry : entries) {
-            categories.putIfAbsent(entry.getCategory().getKey(), entry.getCategory());
-            byCategory.computeIfAbsent(entry.getCategory().getKey(), key -> new ArrayList<>()).add(entry);
+            List<DailyTrainingEntry> categoryEntries = byCategory.get(entry.getCategory().getKey());
+            if (categoryEntries != null) {
+                categoryEntries.add(entry);
+            }
         }
 
         return byCategory.entrySet().stream()
@@ -190,6 +192,7 @@ public class StatsService {
         return new CategoryStatViewModel(
                 category.getName(),
                 CategoryIconMapper.iconKeyFor(category.getKey()),
+                CategoryIconMapper.isBeta(category.getKey()),
                 entries.size(),
                 success,
                 total,

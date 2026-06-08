@@ -4,6 +4,7 @@ public record CategoryEntryViewModel(
         Long categoryId,
         String categoryName,
         String iconKey,
+        boolean beta,
         String description,
         boolean trained,
         String result,

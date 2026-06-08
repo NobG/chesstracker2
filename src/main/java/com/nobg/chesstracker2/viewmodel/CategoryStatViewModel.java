@@ -5,6 +5,7 @@ import java.time.LocalDate;
 public record CategoryStatViewModel(
         String categoryName,
         String iconKey,
+        boolean beta,
         int trainingUnits,
         int successCount,
         int totalCount,
