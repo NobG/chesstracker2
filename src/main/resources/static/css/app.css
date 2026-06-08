@@ -32,9 +32,9 @@ a {
     align-items: center;
     background: rgba(16, 19, 21, 0.92);
     border-bottom: 1px solid var(--line);
-    display: flex;
+    display: grid;
     gap: 28px;
-    justify-content: space-between;
+    grid-template-columns: auto 1fr;
     padding: 18px clamp(18px, 5vw, 64px);
     position: sticky;
     top: 0;
@@ -42,8 +42,36 @@ a {
 }
 
 .brand {
+    align-items: center;
     color: var(--accent);
+    display: inline-flex;
+    gap: 10px;
     font-weight: 800;
+}
+
+.brand-mark {
+    align-items: center;
+    background: rgba(96, 199, 168, 0.14);
+    border: 1px solid rgba(96, 199, 168, 0.42);
+    border-radius: 8px;
+    display: inline-flex;
+    height: 34px;
+    justify-content: center;
+    width: 34px;
+}
+
+.brand-mark__piece {
+    height: 21px;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.9;
+    width: 21px;
+}
+
+.brand-mark__piece,
+.brand-mark__piece * {
+    fill: none;
 }
 
 .svg-sprite {
@@ -56,6 +84,7 @@ a {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
+    justify-content: flex-end;
 }
 
 .topnav nav a {
@@ -68,6 +97,117 @@ a {
 .topnav nav a:hover {
     border-color: var(--line);
     color: var(--text);
+}
+
+.app-hero {
+    align-items: center;
+    background: linear-gradient(135deg, rgba(32, 39, 44, 0.92), rgba(24, 29, 33, 0.86));
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    display: grid;
+    gap: 22px;
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.76fr);
+    padding: clamp(18px, 3vw, 28px);
+}
+
+.app-brand {
+    align-items: center;
+    display: flex;
+    gap: 18px;
+    min-width: 0;
+}
+
+.app-brand h1 {
+    font-size: clamp(1.8rem, 3vw, 2.7rem);
+}
+
+.app-brand p:last-child {
+    margin: 8px 0 0;
+}
+
+.app-logo {
+    align-items: center;
+    background:
+            linear-gradient(45deg, rgba(96, 199, 168, 0.18) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(96, 199, 168, 0.18) 25%, transparent 25%),
+            var(--surface-strong);
+    background-size: 24px 24px;
+    border: 1px solid rgba(96, 199, 168, 0.45);
+    border-radius: 8px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+    color: var(--accent);
+    display: grid;
+    flex: 0 0 auto;
+    height: 72px;
+    justify-content: center;
+    position: relative;
+    width: 72px;
+}
+
+.app-logo__piece {
+    height: 42px;
+    position: relative;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.9;
+    width: 42px;
+    z-index: 1;
+}
+
+.app-logo__piece,
+.app-logo__piece * {
+    fill: none;
+}
+
+.app-logo__square {
+    border: 1px solid rgba(237, 241, 242, 0.18);
+    border-radius: 3px;
+    height: 18px;
+    position: absolute;
+    width: 18px;
+}
+
+.app-logo__square--one {
+    right: 8px;
+    top: 8px;
+}
+
+.app-logo__square--two {
+    bottom: 8px;
+    left: 8px;
+}
+
+.weekly-quote {
+    background: rgba(16, 19, 21, 0.58);
+    border: 1px solid rgba(96, 199, 168, 0.28);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.weekly-quote blockquote {
+    margin: 0;
+}
+
+.weekly-quote-label {
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 800;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+}
+
+.weekly-quote-text {
+    color: var(--text);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.weekly-quote-author {
+    color: var(--muted);
+    font-size: 0.86rem;
+    margin-top: 10px;
 }
 
 .shell {
@@ -488,6 +628,18 @@ th {
 }
 
 @media (max-width: 900px) {
+    .topnav {
+        grid-template-columns: 1fr;
+    }
+
+    .topnav nav {
+        justify-content: flex-start;
+    }
+
+    .app-hero {
+        grid-template-columns: 1fr;
+    }
+
     .metric-grid,
     .entry-grid,
     .two-column {
@@ -504,7 +656,7 @@ th {
 }
 
 @media (max-width: 640px) {
-    .topnav {
+    .app-brand {
         align-items: flex-start;
         flex-direction: column;
     }

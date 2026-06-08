@@ -15,6 +15,7 @@
 ## Spaeter
 
 - Lichess Rating automatisch per API abrufen
+- Partien und Performance automatisch von chess-results abrufen
 - Training und Rating-Verlauf korrelieren
 - Turniermodul ergaenzen
 - Partienlog ergaenzen

@@ -11,7 +11,9 @@ import com.nobg.chesstracker2.model.DailyCompletionStatus;
 import com.nobg.chesstracker2.model.TrainingCategory;
 import com.nobg.chesstracker2.repository.DailyNoteRepository;
 import com.nobg.chesstracker2.repository.DailyTrainingEntryRepository;
+import com.nobg.chesstracker2.repository.MotivationQuoteRepository;
 import com.nobg.chesstracker2.repository.TrainingCategoryRepository;
+import com.nobg.chesstracker2.service.MotivationQuoteService;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,6 +72,12 @@ class DashboardControllerMvcTest {
     @Autowired
     private DailyNoteRepository noteRepository;
 
+    @Autowired
+    private MotivationQuoteRepository quoteRepository;
+
+    @Autowired
+    private MotivationQuoteService quoteService;
+
     @BeforeEach
     void cleanEntries() {
         entryRepository.deleteAll();
@@ -82,9 +90,16 @@ class DashboardControllerMvcTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String html = result.getResponse().getContentAsString();
+        String weeklyQuote = quoteService.getWeeklyQuote(LocalDate.now()).quoteText();
 
         assertThat(html)
                 .contains(
+                        "class=\"app-hero\"",
+                        "class=\"app-logo\"",
+                        "chesstracker2",
+                        "Aimchess Training, Rating und Schachentwicklung",
+                        "Wochenspruch",
+                        weeklyQuote,
                         "name=\"entries[0].categoryId\"",
                         "name=\"entries[0].trained\"",
                         "name=\"entries[0].result\"",
@@ -108,6 +123,14 @@ class DashboardControllerMvcTest {
                         "name=\"form.completionStatus\"",
                         "name=\"completionStatus\""
                 );
+    }
+
+    @Test
+    void migrationSeedsMotivationQuotes() {
+        assertThat(quoteRepository.findByActiveTrueOrderBySortOrderAscIdAsc())
+                .hasSize(10)
+                .extracting("author")
+                .containsOnly("chesstracker2");
     }
 
     @Test
@@ -201,6 +224,21 @@ class DashboardControllerMvcTest {
                         "Tactics Challenge",
                         "Tactics"
                 );
+    }
+
+    @Test
+    void ratingPageRendersWeeklyMotivationHeader() throws Exception {
+        MvcResult result = mockMvc.perform(get("/rating"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(
+                "class=\"app-hero\"",
+                "class=\"app-logo\"",
+                "Wochenspruch",
+                quoteService.getWeeklyQuote(LocalDate.now()).quoteText()
+        );
     }
 
     @Test

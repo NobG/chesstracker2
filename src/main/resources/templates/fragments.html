@@ -86,7 +86,14 @@
             <path d="M8 21h8M9 17h6M10 17c-1-5 1-8 5-11-3 0-5-1-6-3-1 3-1 5 1 7"></path>
         </symbol>
     </svg>
-    <a class="brand" href="/today">chesstracker2</a>
+    <a class="brand" href="/today">
+        <span class="brand-mark" aria-hidden="true">
+            <svg class="brand-mark__piece" focusable="false">
+                <use href="#icon-category-chess"></use>
+            </svg>
+        </span>
+        <span>chesstracker2</span>
+    </a>
     <nav>
         <a href="/today">Heute</a>
         <a href="/week">Woche</a>
@@ -94,6 +101,29 @@
         <a href="/categories">Kategorien</a>
         <a href="/rating">Rating</a>
     </nav>
+    <section class="app-hero">
+        <div class="app-brand">
+            <div class="app-logo" aria-hidden="true">
+                <svg class="app-logo__piece" focusable="false">
+                    <use href="#icon-category-chess"></use>
+                </svg>
+                <span class="app-logo__square app-logo__square--one"></span>
+                <span class="app-logo__square app-logo__square--two"></span>
+            </div>
+            <div>
+                <p class="eyebrow">Schachentwicklung</p>
+                <h1>chesstracker2</h1>
+                <p>Aimchess Training, Rating und Schachentwicklung</p>
+            </div>
+        </div>
+        <aside class="weekly-quote">
+            <p class="weekly-quote-label">Wochenspruch</p>
+            <blockquote>
+                <p class="weekly-quote-text" th:text="${weeklyQuote.quoteText()}">Jeder Trainingstag ist ein Zug in Richtung besseres Schach.</p>
+                <footer class="weekly-quote-author" th:text="'- ' + ${weeklyQuote.author()}">- chesstracker2</footer>
+            </blockquote>
+        </aside>
+    </section>
 </header>
 </body>
 </html>
