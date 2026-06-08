@@ -17,6 +17,7 @@ Diese Notizen dokumentieren den vom Nutzer manuell installierten und validierten
 - URL: `https://chesstracker2.litux.de/today`
 - Flyway: `V001` und `V002` erfolgreich angewendet
 - Besonderheit: Docker-Bridge-Netz auf Zielserver nicht nutzbar, Hostnet-Workaround aktiv
+- Deploy-Workflow: `scripts/deploy-chesstracker2.sh` automatisiert Git-Update, Backup, Hostnet-Build, Compose-Start, Health-Wait und Smoke-Test
 
 ## Technischer Befund
 
@@ -27,6 +28,15 @@ Der aktuell funktionierende Betrieb nutzt deshalb:
 ```bash
 docker compose -f docker-compose.hostnet.yml up -d
 ```
+
+Fuer Deployments ist vorgesehen:
+
+```bash
+cd /opt/chesstracker2
+./scripts/deploy-chesstracker2.sh
+```
+
+Das Skript nutzt bewusst `docker build --network=host`, weil Maven im normalen Docker-Build-Netz auf dem Zielserver laut Nutzer-Validierung keine externen Repositories erreichen konnte.
 
 Dabei bindet PostgreSQL nur auf `127.0.0.1:15432`, und nginx leitet HTTPS-Anfragen fuer `chesstracker2.litux.de` auf `127.0.0.1:8080` weiter.
 

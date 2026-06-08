@@ -17,12 +17,14 @@ Anwendung braucht pruefbare Kernrouten.
 - Docker Compose Konfiguration, Containerstart und PostgreSQL-Bereitschaft werden im Docker-Smoke-Test geprueft.
 - `scripts/smoke-test-hostnet.sh` prueft den laufenden Hostnet-Compose-Betrieb.
 - Hostnet-Smoke-Test prueft `/today`, `/week`, `/month`, `/categories`.
+- Hostnet-Smoke-Test prueft `chesstracker2` und `Tactics` auf `/today`.
 - Oeffentliche URL `https://chesstracker2.litux.de/today` wird optional geprueft, wenn `PUBLIC_BASE_URL` gesetzt ist.
+- Deploy-Skript fuehrt den Hostnet-Smoke-Test automatisch nach dem Start aus.
 - README dokumentiert Ausfuehrung.
 
 ## Technische Hinweise
 
-`smoke-test.sh` erwartet eine laufende Anwendung. `smoke-test-docker.sh` startet die Standard-Docker-Compose-Container lokal und prueft die App. `smoke-test-hostnet.sh` erwartet einen laufenden Hostnet-Compose-Stack und prueft Status sowie Kernrouten.
+`smoke-test.sh` erwartet eine laufende Anwendung. `smoke-test-docker.sh` startet die Standard-Docker-Compose-Container lokal und prueft die App. `smoke-test-hostnet.sh` erwartet einen laufenden Hostnet-Compose-Stack und prueft Status, Kernrouten und zentrale HTML-Inhalte. `deploy-chesstracker2.sh` ruft den Hostnet-Smoke-Test am Ende automatisch auf.
 
 ## Tests
 

@@ -23,3 +23,4 @@
 - Restore-Prozess auf Staging-System testen
 - Docker-Image-Publishing ueber GitHub Actions pruefen
 - Docker-Bridge-Routing auf Zielserver sauber reparieren und danach von hostnet zurueck auf normales Compose pruefen.
+- Deploy-Skript optional auf systemd timer oder manuell ausgeloesten Release-Prozess abstimmen.

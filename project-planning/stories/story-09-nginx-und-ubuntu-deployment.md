@@ -26,6 +26,7 @@ Die Anwendung soll privat auf einem Ubuntu Server laufen. Standard-Zielbetrieb i
 - `docs/INSTALL_UBUNTU_DOCKER.md` beschreibt die Serverinstallation.
 - Zielserverbetrieb fuer `chesstracker2.litux.de` ist dokumentiert.
 - `docker-compose.hostnet.yml` dokumentiert den funktionierenden Hostnet-Workaround.
+- `scripts/deploy-chesstracker2.sh` automatisiert den Zielserver-Workflow.
 
 ## Technische Hinweise
 
@@ -33,10 +34,12 @@ Spring Boot lauscht im Container auf `8080`. Standard-Compose veroeffentlicht de
 
 Im Hostnet-Betrieb lauscht die App auf `127.0.0.1:8080`, PostgreSQL auf `127.0.0.1:15432`. Die App verbindet sich mit `jdbc:postgresql://127.0.0.1:15432/chesstracker2`.
 
+Das Deploy-Skript baut wegen des Zielserver-Netzwerkproblems mit `docker build --network=host`, startet `docker-compose.hostnet.yml`, wartet auf Healthchecks und fuehrt danach den Hostnet-Smoke-Test aus.
+
 ## Tests
 
 Codex hat keinen Zugriff auf den Zielserver und hat dort keine Befehle ausgefuehrt. Laut Nutzer-Validierung laeuft der Zielserver unter `https://chesstracker2.litux.de/today`, App und DB sind healthy, HTTPS funktioniert und Flyway hat `V001` sowie `V002` erfolgreich angewendet.
 
 ## Status
 
-umgesetzt fuer Docker-Compose-MVP; Hostnet-Zielserverbetrieb dokumentiert
+umgesetzt fuer Docker-Compose-MVP; Hostnet-Zielserverbetrieb und Deploy-Skript dokumentiert

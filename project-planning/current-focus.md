@@ -11,7 +11,8 @@ Der chesstracker2-MVP ist als neues Spring-Boot-Projekt aufgebaut. Die Anwendung
 3. PostgreSQL-Container `chesstracker2-db` mit persistentem Volume
 4. nginx als Host-Reverse-Proxy auf `127.0.0.1:8080`
 5. Hostnet-Compose als aktuell validierte Zielserver-Betriebsart
-6. Docker-Bridge-Reparatur als technische Folgeaufgabe
+6. Deploy-Skript fuer Zielserver-Workflow
+7. Docker-Bridge-Reparatur als technische Folgeaufgabe
 
 ## Technische Zielnamen
 
@@ -36,7 +37,7 @@ Der chesstracker2-MVP ist als neues Spring-Boot-Projekt aufgebaut. Die Anwendung
 - Story 05: umgesetzt
 - Story 06-08: umgesetzt als MVP-Grundlage
 - Story 09: Docker-Compose-Deployment vorbereitet und Zielserver-Hostnet-Betrieb dokumentiert
-- Story 10: Smoke-Tests fuer App, Docker und Hostnet-Betrieb vorbereitet
+- Story 10: Smoke-Tests fuer App, Docker und Hostnet-Betrieb vorbereitet; Hostnet-Deploy-Skript ergaenzt
 
 ## Hinweis
 
@@ -51,3 +52,4 @@ Gemeldeter Zielserverstand am 2026-06-08:
 - Bridge-Compose scheiterte wegen Docker-Netzwerkproblem
 - Hostnet-Compose ist aktuell die validierte Betriebsart
 - systemd muss auf dem Zielserver `docker-compose.hostnet.yml` verwenden
+- `scripts/deploy-chesstracker2.sh` automatisiert Git-Update, Backup, Hostnet-Build, Compose-Start, Health-Wait und Smoke-Test

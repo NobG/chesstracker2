@@ -31,6 +31,13 @@ docker compose -f docker-compose.hostnet.yml up -d
 
 Nicht versehentlich nur `docker compose up -d` ausfuehren, wenn der Zielserver weiter das gemeldete Docker-Bridge-Problem hat.
 
+Fuer Updates und regulaere Deployments ist auf dem Zielserver das Deploy-Skript vorgesehen:
+
+```bash
+cd /opt/chesstracker2
+./scripts/deploy-chesstracker2.sh
+```
+
 ## 2. Zielarchitektur
 
 Standard-Bridge-Compose:
@@ -197,7 +204,7 @@ BASE_URL=http://127.0.0.1:8080 ./scripts/smoke-test-hostnet.sh
 PUBLIC_BASE_URL=https://chesstracker2.litux.de ./scripts/smoke-test-hostnet.sh
 ```
 
-Diese Tests sind lokal bzw. auf dem Server ausfuehrbar. Sie wurden nicht auf dem Zielserver durch Codex ausgefuehrt.
+Der Hostnet-Smoke-Test prueft Compose-Status, laufende App/DB-Container, `/today`, `/week`, `/month`, `/categories`, den Text `chesstracker2` auf `/today`, die Kategorie `Tactics` und optional die oeffentliche URL. Diese Tests sind lokal bzw. auf dem Server ausfuehrbar. Sie wurden nicht auf dem Zielserver durch Codex ausgefuehrt.
 
 ## 10. nginx einrichten
 
@@ -258,15 +265,33 @@ Wenn dein Projekt nicht unter `/opt/chesstracker2` liegt, passe `WorkingDirector
 
 ## 12. Updates im Hostnet-Betrieb
 
-Auf dem Zielserver nutzt der Build aktuell `--network=host`, weil Maven im normalen Docker-Build-Netz keine externen Repositories erreichen konnte.
+Auf dem Zielserver nutzt der Build aktuell `--network=host`, weil Maven im normalen Docker-Build-Netz keine externen Repositories erreichen konnte. Der empfohlene Update-Weg ist das automatisierte Deploy-Skript:
 
 ```bash
 cd /opt/chesstracker2
-git pull
-docker build --network=host -t chesstracker2-chesstracker2-app .
-docker compose -f docker-compose.hostnet.yml up -d
-docker compose -f docker-compose.hostnet.yml ps
-curl -I https://chesstracker2.litux.de/today
+./scripts/deploy-chesstracker2.sh
+```
+
+Das Skript:
+
+- verhindert parallele Deploys per Lockfile
+- prueft Projektverzeichnis, `.git`, `.env`, Docker Compose, Git, Curl und optional `nginx -t`
+- bricht bei lokalen Git-Aenderungen ab
+- zieht `origin/main` per Fast-Forward
+- erstellt standardmaessig ein Predeploy-Backup, wenn `chesstracker2-db` laeuft
+- baut `chesstracker2-chesstracker2-app:latest` und einen Commit-Tag mit `docker build --network=host`
+- prueft `docker compose -f docker-compose.hostnet.yml config`
+- startet `docker compose -f docker-compose.hostnet.yml up -d`
+- wartet auf Health von `chesstracker2-db` und `chesstracker2-app`
+- fuehrt am Ende `scripts/smoke-test-hostnet.sh` aus
+- gibt bei Fehlern Compose-Status und Logs aus, ohne Secrets aus `.env` auszugeben
+
+Optionen:
+
+```bash
+SKIP_BACKUP=true ./scripts/deploy-chesstracker2.sh
+SKIP_GIT_PULL=true ./scripts/deploy-chesstracker2.sh
+PUBLIC_BASE_URL= ./scripts/deploy-chesstracker2.sh
 ```
 
 ## 13. Backup und Restore im Hostnet-Betrieb
@@ -307,6 +332,14 @@ ss -tulpen | grep -E ':8080|:15432'
 ufw status numbered
 nginx -t
 journalctl -u chesstracker2 -n 100 --no-pager
+```
+
+Bei einem Fehler im Deploy-Skript werden automatisch ausgegeben:
+
+```bash
+docker compose -f docker-compose.hostnet.yml ps
+docker compose -f docker-compose.hostnet.yml logs --tail=120 chesstracker2-app
+docker compose -f docker-compose.hostnet.yml logs --tail=80 chesstracker2-db
 ```
 
 Docker-Bridge-Problem pruefen:

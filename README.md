@@ -34,6 +34,15 @@ docker compose -f docker-compose.hostnet.yml up -d
 docker compose -f docker-compose.hostnet.yml ps
 ```
 
+Fuer Deployments auf dem Zielserver ist das automatisierte Skript vorgesehen:
+
+```bash
+cd /opt/chesstracker2
+./scripts/deploy-chesstracker2.sh
+```
+
+Das Skript zieht `origin/main`, erstellt vor dem Deploy ein Backup, baut das Image mit `docker build --network=host`, startet `docker-compose.hostnet.yml`, wartet auf Container-Health und fuehrt danach den Hostnet-Smoke-Test aus.
+
 Grund: Auf dem Zielserver ist das Docker-Bridge-Routing laut manueller Nutzer-Validierung defekt oder blockiert. Die App konnte die DB im Bridge-Netz nicht erreichen und brach mit `NoRouteToHostException` ab. Codex hat den Zielserver nicht selbst geprueft.
 
 nginx laeuft auf dem Host und leitet weiter:
@@ -162,14 +171,18 @@ Update:
 
 ```bash
 cd /opt/chesstracker2
-git pull
-docker build --network=host -t chesstracker2-chesstracker2-app .
-docker compose -f docker-compose.hostnet.yml up -d
-docker compose -f docker-compose.hostnet.yml ps
-curl -I https://chesstracker2.litux.de/today
+./scripts/deploy-chesstracker2.sh
 ```
 
-Der Build nutzt auf dem Zielserver aktuell `--network=host`, weil Maven im normalen Docker-Build-Netz keine externen Repositories erreichen konnte.
+Der Build nutzt auf dem Zielserver aktuell `--network=host`, weil Maven im normalen Docker-Build-Netz keine externen Repositories erreichen konnte. Das Skript gibt bei Fehlern Compose-Status sowie Logs von `chesstracker2-app` und `chesstracker2-db` aus. Es verwendet nie `docker compose down -v`, `docker system prune -a` oder Volume-Loeschbefehle.
+
+Optionen:
+
+```bash
+SKIP_BACKUP=true ./scripts/deploy-chesstracker2.sh
+SKIP_GIT_PULL=true ./scripts/deploy-chesstracker2.sh
+PUBLIC_BASE_URL= ./scripts/deploy-chesstracker2.sh
+```
 
 ## Smoke-Test
 
@@ -196,7 +209,7 @@ BASE_URL=http://127.0.0.1:8080 ./scripts/smoke-test-hostnet.sh
 PUBLIC_BASE_URL=https://chesstracker2.litux.de ./scripts/smoke-test-hostnet.sh
 ```
 
-Dieser Test erwartet einen laufenden Hostnet-Compose-Stack und prueft die lokalen Kernrouten. Die oeffentliche URL wird nur geprueft, wenn `PUBLIC_BASE_URL` gesetzt ist.
+Dieser Test erwartet einen laufenden Hostnet-Compose-Stack und prueft die lokalen Kernrouten, `chesstracker2` im `/today`-HTML sowie die Kategorie `Tactics`. Die oeffentliche URL wird nur geprueft, wenn `PUBLIC_BASE_URL` gesetzt ist.
 
 ## Projektplanung
 
