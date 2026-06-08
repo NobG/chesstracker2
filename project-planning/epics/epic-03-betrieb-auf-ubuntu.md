@@ -2,7 +2,7 @@
 
 ## Ziel
 
-chesstracker stabil auf einem Ubuntu Server mit PostgreSQL und nginx betreiben.
+chesstracker2 stabil auf einem Ubuntu Server mit PostgreSQL und nginx betreiben.
 
 ## Umfang
 

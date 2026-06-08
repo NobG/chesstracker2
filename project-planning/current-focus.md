@@ -2,15 +2,25 @@
 
 ## Stand
 
-Der chesstracker-MVP ist als neues Spring-Boot-Projekt aufgebaut. Der Zielbetrieb wird auf Docker Compose fuer Ubuntu umgestellt.
+Der chesstracker2-MVP ist als neues Spring-Boot-Projekt aufgebaut. Der Zielbetrieb wird auf Docker Compose fuer Ubuntu umgestellt.
 
 ## Aktueller Fokus
 
 1. Docker-Compose-Zielbetrieb fuer Ubuntu
-2. App-Container `chesstracker-app`
-3. PostgreSQL-Container `chesstracker-db` mit persistentem Volume
+2. App-Container `chesstracker2-app`
+3. PostgreSQL-Container `chesstracker2-db` mit persistentem Volume
 4. nginx als Host-Reverse-Proxy auf `127.0.0.1:8080`
 5. Installationsanleitung fuer manuelle Serverausfuehrung
+
+## Technische Zielnamen
+
+- Projektname: `chesstracker2`
+- Zielpfad: `/opt/chesstracker2`
+- systemd-Service: `chesstracker2`
+- Docker App-Service: `chesstracker2-app`
+- Docker DB-Service: `chesstracker2-db`
+- Docker Volume: `chesstracker2_pgdata`
+- Datenbank: `chesstracker2`
 
 ## Status
 

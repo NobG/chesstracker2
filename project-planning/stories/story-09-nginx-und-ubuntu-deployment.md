@@ -11,8 +11,12 @@ Die Anwendung soll privat auf einem Ubuntu Server laufen. Zielbetrieb ist Docker
 ## Akzeptanzkriterien
 
 - Dockerfile existiert.
-- `docker-compose.yml` definiert `chesstracker-app` und `chesstracker-db`.
+- `docker-compose.yml` definiert `chesstracker2-app` und `chesstracker2-db`.
 - PostgreSQL nutzt ein persistentes Docker Volume.
+- Docker Volume heisst `chesstracker2_pgdata`.
+- Datenbank und Datenbanknutzer heissen `chesstracker2`.
+- Zielpfad ist `/opt/chesstracker2`.
+- systemd-Service heisst `chesstracker2`.
 - App wird nur lokal auf dem Host veroeffentlicht.
 - systemd-Service fuer Docker Compose existiert.
 - nginx Reverse-Proxy-Beispiel existiert.

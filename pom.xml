@@ -11,10 +11,10 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.chesstracker</groupId>
-    <artifactId>chesstracker</artifactId>
+    <groupId>com.nobg.chesstracker2</groupId>
+    <artifactId>chesstracker2</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-    <name>chesstracker</name>
+    <name>chesstracker2</name>
     <description>Private Aimchess training tracker</description>
 
     <properties>

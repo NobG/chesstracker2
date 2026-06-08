@@ -10,13 +10,13 @@ RUN mvn -B -DskipTests package
 
 FROM eclipse-temurin:21-jre-alpine
 
-RUN addgroup -S chesstracker && adduser -S chesstracker -G chesstracker
+RUN addgroup -S chesstracker2 && adduser -S chesstracker2 -G chesstracker2
 
 WORKDIR /app
-COPY --from=build /workspace/target/chesstracker-0.1.0-SNAPSHOT.jar /app/chesstracker.jar
+COPY --from=build /workspace/target/chesstracker2-0.1.0-SNAPSHOT.jar /app/chesstracker2.jar
 
 ENV SPRING_PROFILES_ACTIVE=prod
 EXPOSE 8080
 
-USER chesstracker
-ENTRYPOINT ["java", "-jar", "/app/chesstracker.jar"]
+USER chesstracker2
+ENTRYPOINT ["java", "-jar", "/app/chesstracker2.jar"]

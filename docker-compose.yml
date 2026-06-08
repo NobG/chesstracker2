@@ -1,18 +1,18 @@
 services:
-  chesstracker-app:
+  chesstracker2-app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: chesstracker-app
+    container_name: chesstracker2-app
     restart: unless-stopped
     depends_on:
-      chesstracker-db:
+      chesstracker2-db:
         condition: service_healthy
     environment:
       SERVER_PORT: 8080
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://chesstracker-db:5432/chesstracker}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-chesstracker}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://chesstracker2-db:5432/chesstracker2}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-chesstracker2}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?Set SPRING_DATASOURCE_PASSWORD in .env}
     ports:
       - "127.0.0.1:${APP_PORT:-8080}:8080"
@@ -23,22 +23,22 @@ services:
       retries: 5
       start_period: 45s
 
-  chesstracker-db:
+  chesstracker2-db:
     image: postgres:16-alpine
-    container_name: chesstracker-db
+    container_name: chesstracker2-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-chesstracker}
-      POSTGRES_USER: ${POSTGRES_USER:-chesstracker}
+      POSTGRES_DB: ${POSTGRES_DB:-chesstracker2}
+      POSTGRES_USER: ${POSTGRES_USER:-chesstracker2}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     volumes:
-      - chesstracker_pgdata:/var/lib/postgresql/data
+      - chesstracker2_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chesstracker} -d ${POSTGRES_DB:-chesstracker}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chesstracker2} -d ${POSTGRES_DB:-chesstracker2}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 20s
 
 volumes:
-  chesstracker_pgdata:
+  chesstracker2_pgdata:

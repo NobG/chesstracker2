@@ -3,8 +3,8 @@ set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://localhost:8080}"
 TMP_DIR="${TMPDIR:-/tmp}"
-BODY_FILE="${TMP_DIR}/chesstracker-smoke-body-$$.html"
-STATUS_FILE="${TMP_DIR}/chesstracker-smoke-status-$$.txt"
+BODY_FILE="${TMP_DIR}/chesstracker2-smoke-body-$$.html"
+STATUS_FILE="${TMP_DIR}/chesstracker2-smoke-status-$$.txt"
 
 cleanup() {
   rm -f "$BODY_FILE" "$STATUS_FILE"

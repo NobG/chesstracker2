@@ -3,11 +3,11 @@ server:
 
 spring:
   application:
-    name: chesstracker
+    name: chesstracker2
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/chesstracker}
-    username: ${SPRING_DATASOURCE_USERNAME:chesstracker}
-    password: ${SPRING_DATASOURCE_PASSWORD:chesstracker_dev}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/chesstracker2}
+    username: ${SPRING_DATASOURCE_USERNAME:chesstracker2}
+    password: ${SPRING_DATASOURCE_PASSWORD:chesstracker2_dev}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -21,9 +21,9 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/chesstracker}
-    username: ${SPRING_DATASOURCE_USERNAME:chesstracker}
-    password: ${SPRING_DATASOURCE_PASSWORD:chesstracker_dev}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/chesstracker2}
+    username: ${SPRING_DATASOURCE_USERNAME:chesstracker2}
+    password: ${SPRING_DATASOURCE_PASSWORD:chesstracker2_dev}
   thymeleaf:
     cache: false
 

@@ -2,11 +2,11 @@
 
 ## Ziel
 
-Ein neues, wartbares Spring-Boot-Projekt fuer chesstracker anlegen.
+Ein neues, wartbares Spring-Boot-Projekt fuer chesstracker2 anlegen.
 
 ## Ausgangslage
 
-Der alte chesstracker wird verworfen. Der Workspace startet leer.
+Der alte chesstracker2 wird verworfen. Der Workspace startet leer.
 
 ## Akzeptanzkriterien
 

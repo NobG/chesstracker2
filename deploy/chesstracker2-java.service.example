@@ -1,0 +1,16 @@
+[Unit]
+Description=chesstracker2 Java service example
+After=network.target postgresql.service
+
+[Service]
+User=chesstracker2
+Group=chesstracker2
+WorkingDirectory=/opt/chesstracker2
+EnvironmentFile=/opt/chesstracker2/env
+ExecStart=/usr/bin/java -jar /opt/chesstracker2/chesstracker2.jar
+Restart=on-failure
+RestartSec=5
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
