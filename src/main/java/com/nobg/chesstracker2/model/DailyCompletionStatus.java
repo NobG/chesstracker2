@@ -3,7 +3,7 @@ package com.nobg.chesstracker2.model;
 public enum DailyCompletionStatus {
     OPEN("Offen"),
     PARTIAL("Teilweise bearbeitet"),
-    COMPLETED("Aimchess Training abgeschlossen");
+    COMPLETED("Abgeschlossen");
 
     private final String displayLabel;
 

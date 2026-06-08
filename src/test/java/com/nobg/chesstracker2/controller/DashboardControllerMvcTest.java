@@ -92,11 +92,9 @@ class DashboardControllerMvcTest {
                         "name=\"entries[0].durationMinutes\"",
                         "name=\"entries[0].note\"",
                         "name=\"dayNote\"",
-                        "name=\"completionStatus\"",
-                        "value=\"OPEN\"",
-                        "value=\"PARTIAL\"",
-                        "value=\"COMPLETED\"",
-                        "Aimchess Training abgeschlossen",
+                        "Speichern",
+                        "Aimchess Training abschlie",
+                        "Nach dem Abschluss ist der Tag eingefroren",
                         "href=\"/favicon.svg\"",
                         "id=\"icon-category-target\"",
                         "href=\"#icon-category-target\"",
@@ -107,7 +105,8 @@ class DashboardControllerMvcTest {
                         "name=\"form.entries[0].categoryId\"",
                         "name=\"form.entries[0].durationMinutes\"",
                         "name=\"form.dayNote\"",
-                        "name=\"form.completionStatus\""
+                        "name=\"form.completionStatus\"",
+                        "name=\"completionStatus\""
                 );
     }
 
@@ -216,7 +215,6 @@ class DashboardControllerMvcTest {
                         .param("entries[0].score", "1200")
                         .param("entries[0].durationMinutes", "5")
                         .param("entries[0].note", "Test")
-                        .param("completionStatus", "PARTIAL")
                         .param("dayNote", "Tagesnotiz"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/today"));
@@ -229,15 +227,15 @@ class DashboardControllerMvcTest {
         assertThat(saved.getNote()).isEqualTo("Test");
         assertThat(noteRepository.findByTrainingDate(today).orElseThrow().getCompletionStatus())
                 .isEqualTo(DailyCompletionStatus.PARTIAL);
+        assertThat(noteRepository.findByTrainingDate(today).orElseThrow().getCompletedAt()).isNull();
 
-        mockMvc.perform(post("/today/entries")
+        mockMvc.perform(post("/today/complete")
                         .param("entries[0].categoryId", tactics.getId().toString())
                         .param("entries[0].trained", "true")
                         .param("entries[0].result", "4/5")
                         .param("entries[0].score", "1300")
                         .param("entries[0].durationMinutes", "10")
-                        .param("entries[0].note", "Aktualisiert")
-                        .param("completionStatus", "COMPLETED"))
+                        .param("entries[0].note", "Aktualisiert"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/today"));
 
@@ -251,6 +249,41 @@ class DashboardControllerMvcTest {
         assertThat(updated.getNote()).isEqualTo("Aktualisiert");
         assertThat(noteRepository.findByTrainingDate(today).orElseThrow().getCompletionStatus())
                 .isEqualTo(DailyCompletionStatus.COMPLETED);
+        assertThat(noteRepository.findByTrainingDate(today).orElseThrow().getCompletedAt()).isNotNull();
+    }
+
+    @Test
+    void completedTodayIsLockedAndPostEntriesCannotChangeIt() throws Exception {
+        TrainingCategory tactics = tactics();
+        LocalDate today = LocalDate.now();
+
+        mockMvc.perform(post("/today/complete")
+                        .param("entries[0].categoryId", tactics.getId().toString())
+                        .param("entries[0].trained", "true")
+                        .param("entries[0].result", "3/5")
+                        .param("entries[0].durationMinutes", "5"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/today"));
+
+        MvcResult lockedPage = mockMvc.perform(get("/today"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = lockedPage.getResponse().getContentAsString();
+        assertThat(html).contains("Tag abgeschlossen", "readonly", "disabled");
+
+        mockMvc.perform(post("/today/entries")
+                        .param("entries[0].categoryId", tactics.getId().toString())
+                        .param("entries[0].trained", "true")
+                        .param("entries[0].result", "5/5")
+                        .param("entries[0].durationMinutes", "20"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/today"));
+
+        assertThat(entryRepository.findByTrainingDateOrderByCategorySortOrderAsc(today)).hasSize(1);
+        DailyTrainingEntry saved = entryRepository.findByTrainingDateAndCategoryId(today, tactics.getId()).orElseThrow();
+        assertThat(saved.getSuccessCount()).isEqualTo(3);
+        assertThat(saved.getTotalCount()).isEqualTo(5);
+        assertThat(saved.getDurationMinutes()).isEqualTo(5);
     }
 
     private TrainingCategory tactics() {

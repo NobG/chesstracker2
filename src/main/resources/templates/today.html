@@ -9,7 +9,9 @@
         <h1 th:text="${view.date}">2026-06-08</h1>
         <p th:text="${view.summary.automaticSummary}">Heute sind noch keine Einheiten erfasst.</p>
         <p class="status-line" th:classappend="' status-line--' + ${view.summary.completionStatus().name().toLowerCase()}"
-           th:text="'Status: ' + ${view.summary.completionStatusLabel()}" >Status: Offen</p>
+           th:text="'Tagesstatus: ' + ${view.summary.completionStatusLabel()}" >Tagesstatus: Offen</p>
+        <p class="status-line" th:if="${view.summary.locked()}"
+           th:text="'Abgeschlossen am: ' + ${view.summary.completedAt()}">Abgeschlossen am: 2026-06-08</p>
     </section>
 
     <div class="alert success" th:if="${successMessage}" th:text="${successMessage}"></div>
@@ -34,7 +36,7 @@
         </article>
     </section>
 
-    <form class="training-form" method="post" th:action="${saveAction}" th:object="${form}">
+    <form id="training-form" class="training-form" method="post" th:action="${saveAction}" th:object="${form}">
         <section class="entry-grid">
             <article class="entry-card" th:classappend="${entry.workedToday()} ? ' is-worked-today'"
                      th:each="formEntry, stat : ${view.form.entries}" th:with="entry=${view.entries[stat.index]}">
@@ -52,41 +54,62 @@
                         <p th:text="${entry.description()}">Beschreibung</p>
                     </div>
                     <label class="switch">
-                        <input type="checkbox" th:field="*{entries[__${stat.index}__].trained}">
+                        <input type="checkbox" th:field="*{entries[__${stat.index}__].trained}" th:disabled="${view.summary.locked()}">
                         <span>Trainiert</span>
                     </label>
                 </div>
                 <div class="field-row">
                     <label>Ergebnis
-                        <input th:field="*{entries[__${stat.index}__].result}" placeholder="7/10">
+                        <input th:field="*{entries[__${stat.index}__].result}" th:readonly="${view.summary.locked()}" placeholder="7/10">
                     </label>
                     <label>Score
-                        <input type="number" th:field="*{entries[__${stat.index}__].score}" placeholder="1420">
+                        <input type="number" th:field="*{entries[__${stat.index}__].score}" th:readonly="${view.summary.locked()}" placeholder="1420">
                     </label>
                     <label>Minuten
-                        <input type="number" min="0" th:field="*{entries[__${stat.index}__].durationMinutes}" placeholder="15">
+                        <input type="number" min="0" th:field="*{entries[__${stat.index}__].durationMinutes}" th:readonly="${view.summary.locked()}" placeholder="15">
                     </label>
                 </div>
                 <label>Notiz
-                    <textarea rows="2" th:field="*{entries[__${stat.index}__].note}" placeholder="Was fiel auf?"></textarea>
+                    <textarea rows="2" th:field="*{entries[__${stat.index}__].note}" th:readonly="${view.summary.locked()}" placeholder="Was fiel auf?"></textarea>
                 </label>
             </article>
         </section>
 
         <section class="panel">
-            <div class="status-options">
+            <div class="status-display">
                 <p class="eyebrow">Tagesstatus</p>
-                <label class="status-option" th:each="status : ${T(com.nobg.chesstracker2.model.DailyCompletionStatus).values()}">
-                    <input type="radio" th:field="*{completionStatus}" th:value="${status}">
-                    <span th:text="${status.displayLabel()}">Offen</span>
-                </label>
+                <strong th:text="${view.summary.completionStatusLabel()}">Offen</strong>
+                <span th:if="${view.summary.locked()}" th:text="'Abgeschlossen am: ' + ${view.summary.completedAt()}">Abgeschlossen am</span>
             </div>
             <label>Tagesnotiz
-                <textarea rows="4" th:field="*{dayNote}" placeholder="Kurze Gesamtnotiz fuer den Tag"></textarea>
+                <textarea rows="4" th:field="*{dayNote}" th:readonly="${view.summary.locked()}" placeholder="Kurze Gesamtnotiz fuer den Tag"></textarea>
             </label>
-            <button class="primary-button" type="submit">Speichern</button>
+            <div class="button-row" th:if="${!view.summary.locked()}">
+                <button class="primary-button" type="submit">Speichern</button>
+                <button class="secondary-button" type="button" data-open-complete-dialog>Aimchess Training abschlie&szlig;en</button>
+            </div>
+            <p class="locked-hint" th:if="${view.summary.locked()}">Tag abgeschlossen</p>
         </section>
     </form>
+
+    <dialog class="complete-dialog" data-complete-dialog>
+        <form method="dialog">
+            <div class="section-title">
+                <div>
+                    <p class="eyebrow">Abschluss</p>
+                    <h2>Aimchess Training abschlie&szlig;en?</h2>
+                </div>
+            </div>
+            <div class="dialog-summary" data-complete-summary>
+                Zusammenfassung wird erstellt.
+            </div>
+            <p>Nach dem Abschluss ist der Tag eingefroren und nicht mehr bearbeitbar.</p>
+            <div class="button-row">
+                <button class="secondary-button" type="button" data-close-complete-dialog>Abbrechen</button>
+                <button class="primary-button" type="submit" form="training-form" th:formaction="${completeAction}">Training abschlie&szlig;en</button>
+            </div>
+        </form>
+    </dialog>
 
     <section class="panel copy-panel">
         <div class="section-title">
@@ -107,6 +130,82 @@ document.querySelectorAll('[data-copy-target]').forEach((button) => {
         button.textContent = 'Kopiert';
         setTimeout(() => button.textContent = 'Kopieren', 1400);
     });
+});
+
+const completeDialog = document.querySelector('[data-complete-dialog]');
+const completeSummary = document.querySelector('[data-complete-summary]');
+const trainingForm = document.getElementById('training-form');
+
+function fieldValue(card, suffix) {
+    const field = card.querySelector(`[name$=".${suffix}"]`);
+    return field ? field.value.trim() : '';
+}
+
+function completionPreview() {
+    const trainedRows = [];
+    let successTotal = 0;
+    let taskTotal = 0;
+    let durationTotal = 0;
+
+    document.querySelectorAll('.entry-card').forEach((card) => {
+        const trained = card.querySelector('[name$=".trained"]')?.checked;
+        const result = fieldValue(card, 'result');
+        const score = fieldValue(card, 'score');
+        const duration = fieldValue(card, 'durationMinutes');
+        const note = fieldValue(card, 'note');
+        if (!trained && !result && !score && !duration && !note) {
+            return;
+        }
+
+        const category = card.querySelector('.category-label span')?.textContent.trim() || 'Kategorie';
+        const resultMatch = result.match(/^(\d+)\s*\/\s*(\d+)$/);
+        let row = `- ${category}`;
+        if (result) {
+            row += `: ${result}`;
+        }
+        if (resultMatch) {
+            const success = Number(resultMatch[1]);
+            const tasks = Number(resultMatch[2]);
+            successTotal += success;
+            taskTotal += tasks;
+            row += ` = ${tasks === 0 ? 0 : Math.round((success * 100) / tasks)}%`;
+        }
+        if (score) {
+            row += `, Score: ${score}`;
+        }
+        if (duration) {
+            durationTotal += Number(duration);
+            row += `, Zeit: ${duration} min`;
+        }
+        if (note) {
+            row += `, Notiz: ${note}`;
+        }
+        trainedRows.push(row);
+    });
+
+    const dayNote = trainingForm.querySelector('[name="dayNote"]')?.value.trim();
+    const rate = taskTotal === 0 ? '-' : `${Math.round((successTotal * 100) / taskTotal)}%`;
+    return [
+        `Datum: ${document.querySelector('.page-heading h1')?.textContent.trim()}`,
+        'Tagesstatus-Vorschau: Abgeschlossen',
+        '',
+        'Bearbeitete Kategorien:',
+        trainedRows.length === 0 ? '- Keine Eintraege' : trainedRows.join('\n'),
+        '',
+        'Gesamt:',
+        `- Aufgaben: ${successTotal}/${taskTotal} = ${rate}`,
+        `- Zeit: ${durationTotal} min`,
+        `- Tagesnotiz: ${dayNote || '-'}`,
+    ].join('\n');
+}
+
+document.querySelector('[data-open-complete-dialog]')?.addEventListener('click', () => {
+    completeSummary.textContent = completionPreview();
+    completeDialog.showModal();
+});
+
+document.querySelector('[data-close-complete-dialog]')?.addEventListener('click', () => {
+    completeDialog.close();
 });
 </script>
 </body>

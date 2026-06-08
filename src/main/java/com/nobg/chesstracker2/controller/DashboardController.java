@@ -35,6 +35,7 @@ public class DashboardController {
         var view = trainingEntryService.todayView(LocalDate.now());
         model.addAttribute("pageTitle", "Heute");
         model.addAttribute("saveAction", "/today/entries");
+        model.addAttribute("completeAction", "/today/complete");
         model.addAttribute("view", view);
         model.addAttribute("form", view.form());
         return "today";
@@ -43,8 +44,27 @@ public class DashboardController {
     @PostMapping("/today/entries")
     public String saveToday(@ModelAttribute("form") TrainingDayForm form, RedirectAttributes redirectAttributes) {
         try {
-            trainingEntryService.saveDay(LocalDate.now(), form);
-            redirectAttributes.addFlashAttribute("successMessage", "Trainingstag gespeichert.");
+            boolean saved = trainingEntryService.saveDay(LocalDate.now(), form);
+            if (saved) {
+                redirectAttributes.addFlashAttribute("successMessage", "Trainingstag gespeichert.");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Der Trainingstag ist abgeschlossen und kann nicht mehr geaendert werden.");
+            }
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/today";
+    }
+
+    @PostMapping("/today/complete")
+    public String completeToday(@ModelAttribute("form") TrainingDayForm form, RedirectAttributes redirectAttributes) {
+        try {
+            boolean completed = trainingEntryService.completeDay(LocalDate.now(), form);
+            if (completed) {
+                redirectAttributes.addFlashAttribute("successMessage", "Aimchess Training abgeschlossen.");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Der Trainingstag ist bereits abgeschlossen.");
+            }
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
@@ -56,6 +76,7 @@ public class DashboardController {
         var view = trainingEntryService.todayView(date);
         model.addAttribute("pageTitle", "Tag " + date);
         model.addAttribute("saveAction", "/day/" + date + "/entries");
+        model.addAttribute("completeAction", "/day/" + date + "/complete");
         model.addAttribute("view", view);
         model.addAttribute("form", view.form());
         return "today";
@@ -64,8 +85,27 @@ public class DashboardController {
     @PostMapping("/day/{date}/entries")
     public String saveDay(@PathVariable LocalDate date, @ModelAttribute("form") TrainingDayForm form, RedirectAttributes redirectAttributes) {
         try {
-            trainingEntryService.saveDay(date, form);
-            redirectAttributes.addFlashAttribute("successMessage", "Trainingstag gespeichert.");
+            boolean saved = trainingEntryService.saveDay(date, form);
+            if (saved) {
+                redirectAttributes.addFlashAttribute("successMessage", "Trainingstag gespeichert.");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Der Trainingstag ist abgeschlossen und kann nicht mehr geaendert werden.");
+            }
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/day/" + date;
+    }
+
+    @PostMapping("/day/{date}/complete")
+    public String completeDay(@PathVariable LocalDate date, @ModelAttribute("form") TrainingDayForm form, RedirectAttributes redirectAttributes) {
+        try {
+            boolean completed = trainingEntryService.completeDay(date, form);
+            if (completed) {
+                redirectAttributes.addFlashAttribute("successMessage", "Aimchess Training abgeschlossen.");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Der Trainingstag ist bereits abgeschlossen.");
+            }
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }

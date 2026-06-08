@@ -36,6 +36,8 @@ public class DailyNote {
     @Column(nullable = false)
     private OffsetDateTime updatedAt;
 
+    private OffsetDateTime completedAt;
+
     @PrePersist
     void onCreate() {
         OffsetDateTime now = OffsetDateTime.now();
@@ -74,5 +76,17 @@ public class DailyNote {
 
     public void setCompletionStatus(DailyCompletionStatus completionStatus) {
         this.completionStatus = completionStatus == null ? DailyCompletionStatus.OPEN : completionStatus;
+    }
+
+    public OffsetDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(OffsetDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    public boolean isLocked() {
+        return completionStatus == DailyCompletionStatus.COMPLETED && completedAt != null;
     }
 }

@@ -13,6 +13,7 @@ import com.nobg.chesstracker2.viewmodel.CategoryEntryViewModel;
 import com.nobg.chesstracker2.viewmodel.DaySummaryViewModel;
 import com.nobg.chesstracker2.viewmodel.TodayViewModel;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -46,13 +47,9 @@ public class TrainingEntryService {
                 .stream()
                 .collect(Collectors.toMap(entry -> entry.getCategory().getId(), Function.identity()));
         String dayNote = noteRepository.findByTrainingDate(date).map(DailyNote::getNote).orElse("");
-        DailyCompletionStatus completionStatus = noteRepository.findByTrainingDate(date)
-                .map(DailyNote::getCompletionStatus)
-                .orElse(DailyCompletionStatus.OPEN);
 
         TrainingDayForm form = new TrainingDayForm();
         form.setDayNote(dayNote);
-        form.setCompletionStatus(completionStatus);
         List<TodayCategoryRow> rows = new ArrayList<>();
 
         for (TrainingCategory category : categories) {
@@ -73,7 +70,24 @@ public class TrainingEntryService {
     }
 
     @Transactional
-    public void saveDay(LocalDate date, TrainingDayForm form) {
+    public boolean saveDay(LocalDate date, TrainingDayForm form) {
+        if (isLocked(date)) {
+            return false;
+        }
+        saveEntriesAndNote(date, form, false);
+        return true;
+    }
+
+    @Transactional
+    public boolean completeDay(LocalDate date, TrainingDayForm form) {
+        if (isLocked(date)) {
+            return false;
+        }
+        saveEntriesAndNote(date, form, true);
+        return true;
+    }
+
+    private void saveEntriesAndNote(LocalDate date, TrainingDayForm form, boolean complete) {
         Map<Long, TrainingCategory> categories = categoryRepository.findAll().stream()
                 .collect(Collectors.toMap(TrainingCategory::getId, Function.identity()));
 
@@ -107,7 +121,13 @@ public class TrainingEntryService {
         DailyNote dailyNote = noteRepository.findByTrainingDate(date).orElseGet(DailyNote::new);
         dailyNote.setTrainingDate(date);
         dailyNote.setNote(blankToNull(form.getDayNote()));
-        dailyNote.setCompletionStatus(form.getCompletionStatus());
+        if (complete) {
+            dailyNote.setCompletionStatus(DailyCompletionStatus.COMPLETED);
+            dailyNote.setCompletedAt(OffsetDateTime.now());
+        } else {
+            dailyNote.setCompletionStatus(automaticCompletionStatus(date));
+            dailyNote.setCompletedAt(null);
+        }
         noteRepository.save(dailyNote);
     }
 
@@ -118,9 +138,12 @@ public class TrainingEntryService {
                 .filter(DailyTrainingEntry::isTrained)
                 .toList();
         String dayNote = noteRepository.findByTrainingDate(date).map(DailyNote::getNote).orElse("");
-        DailyCompletionStatus completionStatus = noteRepository.findByTrainingDate(date)
-                .map(DailyNote::getCompletionStatus)
-                .orElse(DailyCompletionStatus.OPEN);
+        DailyNote note = noteRepository.findByTrainingDate(date).orElse(null);
+        boolean locked = note != null && note.isLocked();
+        DailyCompletionStatus completionStatus = locked
+                ? DailyCompletionStatus.COMPLETED
+                : automaticCompletionStatus(date);
+        OffsetDateTime completedAt = note == null ? null : note.getCompletedAt();
         int success = TrainingCalculator.totalSuccess(trainedEntries);
         int total = TrainingCalculator.totalTasks(trainedEntries);
         int duration = TrainingCalculator.totalDuration(trainedEntries);
@@ -141,6 +164,8 @@ public class TrainingEntryService {
                 dayNote,
                 completionStatus,
                 completionStatus.displayLabel(),
+                locked,
+                completedAt,
                 summary,
                 copyBlock(date, entries, success, total, rate, duration, dayNote, completionStatus)
         );
@@ -204,6 +229,19 @@ public class TrainingEntryService {
                 || (entry.getNote() != null && !entry.getNote().isBlank());
     }
 
+    private boolean isLocked(LocalDate date) {
+        return noteRepository.findByTrainingDate(date)
+                .map(DailyNote::isLocked)
+                .orElse(false);
+    }
+
+    private DailyCompletionStatus automaticCompletionStatus(LocalDate date) {
+        boolean hasTrainingData = entryRepository.findByTrainingDateOrderByCategorySortOrderAsc(date)
+                .stream()
+                .anyMatch(this::workedToday);
+        return hasTrainingData ? DailyCompletionStatus.PARTIAL : DailyCompletionStatus.OPEN;
+    }
+
     private String copyBlock(
             LocalDate date,
             List<CategoryEntryViewModel> entries,
@@ -216,7 +254,7 @@ public class TrainingEntryService {
     ) {
         StringBuilder builder = new StringBuilder();
         builder.append("Aimchess Training - ").append(date).append("\n\n");
-        builder.append("Tagesstatus: ").append(completionStatus.displayLabel()).append("\n\n");
+        builder.append("Tagesstatus: ").append(copyStatusLabel(completionStatus)).append("\n\n");
         builder.append("Trainierte Kategorien:\n");
         if (entries.isEmpty()) {
             builder.append("- Keine Eintraege\n");
@@ -248,6 +286,14 @@ public class TrainingEntryService {
         builder.append("- Tagesnotiz: ").append(dayNote == null || dayNote.isBlank() ? "-" : dayNote).append("\n\n");
         builder.append("Bitte bewerte mein heutiges Aimchess-Training und gib mir konkrete Hinweise fuer morgen.");
         return builder.toString();
+    }
+
+    private String copyStatusLabel(DailyCompletionStatus completionStatus) {
+        return switch (completionStatus) {
+            case COMPLETED -> "Abgeschlossen";
+            case PARTIAL -> "Teilweise bearbeitet / nicht abgeschlossen";
+            case OPEN -> "Offen";
+        };
     }
 
     private String automaticSummary(int trainedCategories, Integer rate, int duration) {

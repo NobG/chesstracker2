@@ -13,6 +13,7 @@ import com.nobg.chesstracker2.repository.TrainingCategoryRepository;
 import com.nobg.chesstracker2.viewmodel.MonthlyStatsViewModel;
 import com.nobg.chesstracker2.viewmodel.WeeklyStatsViewModel;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -89,6 +90,9 @@ class StatsServiceTest {
         DailyNote note = new DailyNote();
         note.setTrainingDate(date);
         note.setCompletionStatus(status);
+        if (status == DailyCompletionStatus.COMPLETED) {
+            note.setCompletedAt(OffsetDateTime.now());
+        }
         return note;
     }
 }

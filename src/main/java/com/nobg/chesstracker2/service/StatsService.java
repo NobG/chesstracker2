@@ -1,7 +1,6 @@
 package com.nobg.chesstracker2.service;
 
 import com.nobg.chesstracker2.model.DailyTrainingEntry;
-import com.nobg.chesstracker2.model.DailyCompletionStatus;
 import com.nobg.chesstracker2.model.DailyNote;
 import com.nobg.chesstracker2.model.TrainingCategory;
 import com.nobg.chesstracker2.repository.DailyNoteRepository;
@@ -21,6 +20,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -134,9 +134,9 @@ public class StatsService {
     }
 
     private StatusCounts statusCounts(LocalDate start, LocalDate end, List<DailyTrainingEntry> entries) {
-        Map<LocalDate, DailyCompletionStatus> statuses = noteRepository.findByTrainingDateBetween(start, end)
+        Map<LocalDate, DailyNote> notes = noteRepository.findByTrainingDateBetween(start, end)
                 .stream()
-                .collect(Collectors.toMap(DailyNote::getTrainingDate, DailyNote::getCompletionStatus));
+                .collect(Collectors.toMap(DailyNote::getTrainingDate, Function.identity()));
         List<LocalDate> daysWithEntries = entries.stream()
                 .map(DailyTrainingEntry::getTrainingDate)
                 .distinct()
@@ -146,13 +146,11 @@ public class StatsService {
         int partial = 0;
         int open = 0;
         for (LocalDate day : daysWithEntries) {
-            DailyCompletionStatus status = statuses.getOrDefault(day, DailyCompletionStatus.OPEN);
-            if (status == DailyCompletionStatus.COMPLETED) {
+            DailyNote note = notes.get(day);
+            if (note != null && note.isLocked()) {
                 completed++;
-            } else if (status == DailyCompletionStatus.PARTIAL) {
-                partial++;
             } else {
-                open++;
+                partial++;
             }
         }
         return new StatusCounts(completed, partial, open);

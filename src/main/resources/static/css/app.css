@@ -259,6 +259,14 @@ textarea {
     width: 100%;
 }
 
+input[readonly],
+textarea[readonly],
+input:disabled {
+    color: var(--muted);
+    cursor: not-allowed;
+    opacity: 0.82;
+}
+
 textarea {
     resize: vertical;
 }
@@ -326,6 +334,18 @@ button {
     color: var(--text);
 }
 
+.button-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.button-row .primary-button {
+    margin-top: 0;
+}
+
 .copy-panel pre {
     background: #0c0f10;
     border: 1px solid var(--line);
@@ -375,25 +395,55 @@ button {
     color: var(--text);
 }
 
-.status-options {
+.status-display {
     display: grid;
-    gap: 10px;
+    gap: 6px;
     margin-bottom: 18px;
 }
 
-.status-option {
-    align-items: center;
-    background: var(--surface-strong);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    display: flex;
-    gap: 10px;
-    padding: 10px 11px;
+.status-display strong {
+    color: var(--text);
 }
 
-.status-option input {
-    accent-color: var(--accent);
-    width: auto;
+.locked-hint {
+    background: rgba(96, 199, 168, 0.14);
+    border: 1px solid rgba(96, 199, 168, 0.42);
+    border-radius: 6px;
+    color: var(--text);
+    display: inline-flex;
+    font-weight: 800;
+    margin: 14px 0 0;
+    padding: 10px 12px;
+}
+
+.complete-dialog {
+    background: var(--surface);
+    border: 1px solid rgba(96, 199, 168, 0.42);
+    border-radius: 8px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+    color: var(--text);
+    max-width: min(620px, calc(100vw - 28px));
+    padding: 20px;
+    width: 620px;
+}
+
+.complete-dialog::backdrop {
+    background: rgba(6, 9, 10, 0.72);
+}
+
+.complete-dialog p {
+    margin-bottom: 0;
+}
+
+.dialog-summary {
+    background: #0c0f10;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: #d9e5e2;
+    line-height: 1.5;
+    margin-top: 14px;
+    padding: 14px;
+    white-space: pre-wrap;
 }
 
 table {
