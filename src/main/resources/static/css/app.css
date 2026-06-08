@@ -661,3 +661,212 @@ th {
         flex-direction: column;
     }
 }
+
+/* Walnut Board theme overrides
+   Ruhiges schachbezogenes Dark-Theme mit Walnuss-, Messing- und gedämpften Grüntönen.
+   Die bestehenden Klassen bleiben unverändert; dieser Block überschreibt nur die Optik.
+*/
+:root {
+    --bg: #11100d;
+    --surface: #201c16;
+    --surface-strong: #2a251d;
+    --line: #3a3125;
+    --text: #f2eadc;
+    --muted: #b9aa94;
+    --accent: #d6a756;
+    --accent-strong: #f0c978;
+    --warn: #d9a441;
+    --bad: #c96f5b;
+    --green: #7f9f6e;
+    --green-strong: #9fbd89;
+    --wood-border: #5a4934;
+    --wood-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+    --wood-shadow-strong: 0 18px 45px rgba(0, 0, 0, 0.34);
+}
+
+body {
+    background:
+            radial-gradient(circle at top left, rgba(214, 167, 86, 0.10), transparent 34rem),
+            radial-gradient(circle at top right, rgba(127, 159, 110, 0.08), transparent 32rem),
+            linear-gradient(180deg, #15120e 0%, var(--bg) 52%, #0d0c0a 100%);
+}
+
+.topnav {
+    background: rgba(17, 16, 13, 0.94);
+    backdrop-filter: blur(16px);
+    border-bottom-color: rgba(90, 73, 52, 0.62);
+}
+
+.brand,
+.eyebrow,
+.category-icon,
+.weekly-quote-label {
+    color: var(--accent-strong);
+}
+
+.brand-mark {
+    background:
+            linear-gradient(145deg, rgba(214, 167, 86, 0.18), rgba(127, 159, 110, 0.08)),
+            var(--surface-strong);
+    border-color: rgba(214, 167, 86, 0.45);
+    border-radius: 9px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24);
+}
+
+.topnav nav a {
+    border-radius: 999px;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.topnav nav a:hover {
+    background: rgba(214, 167, 86, 0.08);
+    border-color: rgba(214, 167, 86, 0.35);
+}
+
+.app-hero {
+    background:
+            linear-gradient(135deg, rgba(214, 167, 86, 0.13), transparent 42%),
+            linear-gradient(45deg, rgba(242, 234, 220, 0.026) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(242, 234, 220, 0.022) 25%, transparent 25%),
+            linear-gradient(145deg, rgba(42, 37, 29, 0.98), rgba(32, 28, 22, 0.96));
+    background-size: auto, 34px 34px, 34px 34px, auto;
+    border-color: rgba(90, 73, 52, 0.72);
+    border-radius: 14px;
+    box-shadow: var(--wood-shadow-strong);
+    overflow: hidden;
+}
+
+.app-logo {
+    background:
+            linear-gradient(45deg, rgba(214, 167, 86, 0.20) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(127, 159, 110, 0.15) 25%, transparent 25%),
+            radial-gradient(circle at 30% 18%, rgba(240, 201, 120, 0.20), transparent 45%),
+            var(--surface-strong);
+    border-color: rgba(214, 167, 86, 0.52);
+    border-radius: 14px;
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.34);
+    color: var(--accent-strong);
+}
+
+.weekly-quote {
+    background: linear-gradient(145deg, rgba(17, 16, 13, 0.76), rgba(42, 37, 29, 0.62));
+    border-color: rgba(214, 167, 86, 0.30);
+    border-radius: 12px;
+    box-shadow: inset 0 1px 0 rgba(242, 234, 220, 0.04);
+}
+
+.metric-card,
+.entry-card,
+.panel {
+    background: linear-gradient(145deg, rgba(32, 28, 22, 0.98), rgba(23, 21, 17, 0.98));
+    border-color: var(--line);
+    border-radius: 12px;
+    box-shadow: var(--wood-shadow);
+}
+
+.entry-card:hover .category-icon {
+    color: var(--accent-strong);
+}
+
+.training-form .entry-card {
+    transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.training-form .entry-card.is-worked-today {
+    background: linear-gradient(145deg, rgba(127, 159, 110, 0.13), rgba(32, 28, 22, 0.96));
+    border-color: rgba(127, 159, 110, 0.72);
+}
+
+.training-form .entry-card.is-worked-today .category-icon {
+    color: var(--green-strong);
+}
+
+.training-form .entry-card:focus-within {
+    background: linear-gradient(145deg, rgba(214, 167, 86, 0.14), rgba(32, 28, 22, 0.98));
+    border-color: rgba(214, 167, 86, 0.78);
+    box-shadow: 0 0 0 2px rgba(214, 167, 86, 0.18), var(--wood-shadow-strong);
+    transform: translateY(-1px);
+}
+
+.training-form .entry-card:focus-within .category-icon {
+    color: var(--accent-strong);
+}
+
+.beta-badge {
+    background: rgba(214, 167, 86, 0.16);
+    border-color: rgba(214, 167, 86, 0.45);
+    color: var(--accent-strong);
+}
+
+.entry-badge {
+    background: rgba(127, 159, 110, 0.18);
+    border-color: rgba(127, 159, 110, 0.45);
+    color: #c9dfbd;
+}
+
+input,
+textarea {
+    border-radius: 8px;
+    transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+input:focus,
+textarea:focus {
+    border-color: rgba(214, 167, 86, 0.72);
+    box-shadow: 0 0 0 3px rgba(214, 167, 86, 0.14);
+    outline: none;
+}
+
+.primary-button {
+    background: linear-gradient(135deg, var(--accent), #b98236);
+    border: 1px solid rgba(240, 201, 120, 0.55);
+    box-shadow: 0 10px 24px rgba(214, 167, 86, 0.18);
+    color: #16120c;
+}
+
+.secondary-button {
+    background: rgba(242, 234, 220, 0.06);
+    border-color: var(--line);
+}
+
+.copy-panel pre,
+.dialog-summary {
+    background: linear-gradient(145deg, rgba(13, 12, 10, 0.96), rgba(23, 21, 17, 0.92));
+    border-color: var(--line);
+    color: #eadfce;
+}
+
+.alert.success,
+.status-line--completed,
+.locked-hint {
+    background: rgba(127, 159, 110, 0.16);
+    border-color: rgba(127, 159, 110, 0.45);
+}
+
+.status-line--partial {
+    background: rgba(217, 164, 65, 0.15);
+    border-color: rgba(217, 164, 65, 0.45);
+}
+
+.complete-dialog {
+    border-color: rgba(214, 167, 86, 0.42);
+    border-radius: 12px;
+}
+
+.complete-dialog::backdrop {
+    background: rgba(8, 7, 6, 0.76);
+}
+
+.change-card strong.change-positive {
+    color: var(--green-strong);
+}
+
+.rate-pill {
+    background: rgba(214, 167, 86, 0.12);
+    border-color: rgba(214, 167, 86, 0.40);
+    border-radius: 8px;
+}
+
+tr:hover td {
+    background: rgba(214, 167, 86, 0.04);
+}
