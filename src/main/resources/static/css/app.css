@@ -36,8 +36,7 @@ a {
     gap: 28px;
     grid-template-columns: auto 1fr;
     padding: 18px clamp(18px, 5vw, 64px);
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 3;
 }
 
