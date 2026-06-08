@@ -135,6 +135,16 @@ h2 {
     transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
 
+.training-form .entry-card.is-worked-today {
+    background: rgba(96, 199, 168, 0.05);
+    border-color: rgba(96, 199, 168, 0.38);
+}
+
+.training-form .entry-card.is-worked-today .category-icon {
+    color: var(--accent);
+    stroke-width: 2;
+}
+
 .training-form .entry-card:focus-within {
     background: rgba(96, 199, 168, 0.08);
     border-color: rgba(96, 199, 168, 0.7);
@@ -151,6 +161,18 @@ h2 {
     border: 1px solid rgba(240, 179, 91, 0.45);
     border-radius: 999px;
     color: var(--warn);
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1;
+    padding: 4px 7px;
+    text-transform: uppercase;
+}
+
+.entry-badge {
+    background: rgba(96, 199, 168, 0.14);
+    border: 1px solid rgba(96, 199, 168, 0.42);
+    border-radius: 999px;
+    color: var(--accent);
     font-size: 0.68rem;
     font-weight: 800;
     line-height: 1;

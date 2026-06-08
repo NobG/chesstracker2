@@ -53,24 +53,23 @@ public class TrainingEntryService {
         TrainingDayForm form = new TrainingDayForm();
         form.setDayNote(dayNote);
         form.setCompletionStatus(completionStatus);
-        List<CategoryEntryViewModel> rows = new ArrayList<>();
+        List<TodayCategoryRow> rows = new ArrayList<>();
 
         for (TrainingCategory category : categories) {
             DailyTrainingEntry entry = existing.get(category.getId());
-            TrainingEntryForm entryForm = new TrainingEntryForm();
-            entryForm.setCategoryId(category.getId());
-            if (entry != null) {
-                entryForm.setTrained(entry.isTrained());
-                entryForm.setResult(resultText(entry.getSuccessCount(), entry.getTotalCount()));
-                entryForm.setScore(entry.getScore());
-                entryForm.setDurationMinutes(entry.getDurationMinutes());
-                entryForm.setNote(entry.getNote());
-            }
-            form.getEntries().add(entryForm);
-            rows.add(toCategoryView(category, entry));
+            rows.add(new TodayCategoryRow(category, entry, toEntryForm(category, entry), toCategoryView(category, entry)));
+        }
+        rows.sort(Comparator
+                .comparing((TodayCategoryRow row) -> !row.view().workedToday())
+                .thenComparing(row -> row.category().getSortOrder()));
+
+        List<CategoryEntryViewModel> viewRows = new ArrayList<>();
+        for (TodayCategoryRow row : rows) {
+            form.getEntries().add(row.form());
+            viewRows.add(row.view());
         }
 
-        return new TodayViewModel(date, form, rows, daySummary(date));
+        return new TodayViewModel(date, form, viewRows, daySummary(date));
     }
 
     @Transactional
@@ -154,6 +153,7 @@ public class TrainingEntryService {
                     category.getName(),
                     CategoryIconMapper.iconKeyFor(category.getKey()),
                     CategoryIconMapper.isBeta(category.getKey()),
+                    false,
                     category.getDescription(),
                     false,
                     "",
@@ -168,6 +168,7 @@ public class TrainingEntryService {
                 category.getName(),
                 CategoryIconMapper.iconKeyFor(category.getKey()),
                 CategoryIconMapper.isBeta(category.getKey()),
+                workedToday(entry),
                 category.getDescription(),
                 entry.isTrained(),
                 resultText(entry.getSuccessCount(), entry.getTotalCount()),
@@ -176,6 +177,31 @@ public class TrainingEntryService {
                 entry.getNote(),
                 TrainingCalculator.successRate(entry.getSuccessCount(), entry.getTotalCount())
         );
+    }
+
+    private TrainingEntryForm toEntryForm(TrainingCategory category, DailyTrainingEntry entry) {
+        TrainingEntryForm entryForm = new TrainingEntryForm();
+        entryForm.setCategoryId(category.getId());
+        if (entry != null) {
+            entryForm.setTrained(entry.isTrained());
+            entryForm.setResult(resultText(entry.getSuccessCount(), entry.getTotalCount()));
+            entryForm.setScore(entry.getScore());
+            entryForm.setDurationMinutes(entry.getDurationMinutes());
+            entryForm.setNote(entry.getNote());
+        }
+        return entryForm;
+    }
+
+    private boolean workedToday(DailyTrainingEntry entry) {
+        if (entry == null) {
+            return false;
+        }
+        return entry.isTrained()
+                || entry.getSuccessCount() > 0
+                || entry.getTotalCount() > 0
+                || entry.getScore() != null
+                || (entry.getDurationMinutes() != null && entry.getDurationMinutes() > 0)
+                || (entry.getNote() != null && !entry.getNote().isBlank());
     }
 
     private String copyBlock(
@@ -242,5 +268,13 @@ public class TrainingEntryService {
 
     private String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private record TodayCategoryRow(
+            TrainingCategory category,
+            DailyTrainingEntry entry,
+            TrainingEntryForm form,
+            CategoryEntryViewModel view
+    ) {
     }
 }

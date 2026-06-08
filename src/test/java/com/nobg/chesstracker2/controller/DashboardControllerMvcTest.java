@@ -151,6 +151,41 @@ class DashboardControllerMvcTest {
     }
 
     @Test
+    void todayMarksWorkedCategoryAndKeepsSortedFieldBinding() throws Exception {
+        TrainingCategory tactics = tactics();
+        LocalDate today = LocalDate.now();
+        DailyTrainingEntry entry = new DailyTrainingEntry();
+        entry.setTrainingDate(today);
+        entry.setCategory(tactics);
+        entry.setTrained(true);
+        entry.setSuccessCount(3);
+        entry.setTotalCount(5);
+        entry.setDurationMinutes(5);
+        entryRepository.saveAndFlush(entry);
+
+        MvcResult result = mockMvc.perform(get("/today"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(
+                "is-worked-today",
+                "Heute bearbeitet",
+                "name=\"entries[0].categoryId\"",
+                "name=\"entries[0].trained\"",
+                "name=\"entries[0].result\"",
+                "name=\"entries[0].score\"",
+                "name=\"entries[0].durationMinutes\"",
+                "name=\"entries[0].note\""
+        );
+        assertThat(html).doesNotContain("name=\"form.entries");
+        assertThat(html.indexOf("Tactics")).isLessThan(html.indexOf("Advantage Capitalization"));
+        assertThat(html.indexOf("name=\"entries[0].categoryId\""))
+                .isLessThan(html.indexOf("name=\"entries[1].categoryId\""));
+        assertThat(html).contains("name=\"entries[0].categoryId\" value=\"" + tactics.getId() + "\"");
+    }
+
+    @Test
     void categoriesRenderFaviconAndCategoryIcons() throws Exception {
         MvcResult result = mockMvc.perform(get("/categories"))
                 .andExpect(status().isOk())

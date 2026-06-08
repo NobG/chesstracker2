@@ -36,7 +36,8 @@
 
     <form class="training-form" method="post" th:action="${saveAction}" th:object="${form}">
         <section class="entry-grid">
-            <article class="entry-card" th:each="formEntry, stat : ${view.form.entries}" th:with="entry=${view.entries[stat.index]}">
+            <article class="entry-card" th:classappend="${entry.workedToday()} ? ' is-worked-today'"
+                     th:each="formEntry, stat : ${view.form.entries}" th:with="entry=${view.entries[stat.index]}">
                 <input type="hidden" th:field="*{entries[__${stat.index}__].categoryId}">
                 <div class="entry-card__head">
                     <div>
@@ -46,6 +47,7 @@
                             </svg>
                             <span th:text="${entry.categoryName()}">Tactics</span>
                             <span class="beta-badge" th:if="${entry.beta()}">Beta</span>
+                            <span class="entry-badge" th:if="${entry.workedToday()}">Heute bearbeitet</span>
                         </h2>
                         <p th:text="${entry.description()}">Beschreibung</p>
                     </div>

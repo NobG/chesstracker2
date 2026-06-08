@@ -9,10 +9,12 @@ import com.nobg.chesstracker2.repository.DailyNoteRepository;
 import com.nobg.chesstracker2.repository.DailyTrainingEntryRepository;
 import com.nobg.chesstracker2.repository.TrainingCategoryRepository;
 import com.nobg.chesstracker2.viewmodel.DaySummaryViewModel;
+import com.nobg.chesstracker2.viewmodel.TodayViewModel;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class TrainingEntryServiceTest {
 
@@ -37,6 +39,51 @@ class TrainingEntryServiceTest {
         assertThat(summary.copyBlock()).contains("Aimchess Training - 2026-06-08", "Tactics: 7/10 = 70%");
     }
 
+    @Test
+    void todayViewMarksWorkedCategoriesAndKeepsEmptyEntriesUnmarked() {
+        LocalDate date = LocalDate.of(2026, 6, 8);
+        TrainingCategory tactics = category(1L, "tactics", "Tactics", 20);
+        TrainingCategory opening = category(2L, "opening-improver", "Opening Improver", 30);
+        when(categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc()).thenReturn(List.of(tactics, opening));
+        when(entryRepository.findByTrainingDateOrderByCategorySortOrderAsc(date))
+                .thenReturn(List.of(
+                        entry(tactics, true, 0, 0, null, null, null),
+                        entry(opening, false, 0, 0, null, null, " ")
+                ));
+        when(noteRepository.findByTrainingDate(date)).thenReturn(Optional.empty());
+
+        TodayViewModel view = service.todayView(date);
+
+        assertThat(view.entries()).extracting("categoryName", "workedToday")
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple("Tactics", true),
+                        org.assertj.core.groups.Tuple.tuple("Opening Improver", false)
+                );
+    }
+
+    @Test
+    void todayViewSortsWorkedCategoriesFirstAndPreservesAimchessOrderWithinGroups() {
+        LocalDate date = LocalDate.of(2026, 6, 8);
+        TrainingCategory advantage = category(1L, "advantage-capitalization", "Advantage Capitalization", 10);
+        TrainingCategory tactics = category(2L, "tactics", "Tactics", 20);
+        TrainingCategory opening = category(3L, "opening-improver", "Opening Improver", 30);
+        TrainingCategory time = category(4L, "time-trainer", "Time Trainer", 110);
+        when(categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc()).thenReturn(List.of(advantage, tactics, opening, time));
+        when(entryRepository.findByTrainingDateOrderByCategorySortOrderAsc(date))
+                .thenReturn(List.of(
+                        entry(tactics, false, 3, 5, null, null, null),
+                        entry(time, false, 0, 0, null, 5, null)
+                ));
+        when(noteRepository.findByTrainingDate(date)).thenReturn(Optional.empty());
+
+        TodayViewModel view = service.todayView(date);
+
+        assertThat(view.entries()).extracting("categoryName")
+                .containsExactly("Tactics", "Time Trainer", "Advantage Capitalization", "Opening Improver");
+        assertThat(view.form().getEntries()).extracting("categoryId")
+                .containsExactly(tactics.getId(), time.getId(), advantage.getId(), opening.getId());
+    }
+
     private DailyTrainingEntry entry(String categoryName, int success, int total, int minutes) {
         TrainingCategory category = new TrainingCategory();
         category.setName(categoryName);
@@ -49,6 +96,37 @@ class TrainingEntryServiceTest {
         entry.setSuccessCount(success);
         entry.setTotalCount(total);
         entry.setDurationMinutes(minutes);
+        return entry;
+    }
+
+    private TrainingCategory category(Long id, String key, String name, int sortOrder) {
+        TrainingCategory category = new TrainingCategory();
+        ReflectionTestUtils.setField(category, "id", id);
+        category.setKey(key);
+        category.setName(name);
+        category.setSortOrder(sortOrder);
+        category.setActive(true);
+        return category;
+    }
+
+    private DailyTrainingEntry entry(
+            TrainingCategory category,
+            boolean trained,
+            int success,
+            int total,
+            Integer score,
+            Integer minutes,
+            String note
+    ) {
+        DailyTrainingEntry entry = new DailyTrainingEntry();
+        entry.setTrainingDate(LocalDate.of(2026, 6, 8));
+        entry.setCategory(category);
+        entry.setTrained(trained);
+        entry.setSuccessCount(success);
+        entry.setTotalCount(total);
+        entry.setScore(score);
+        entry.setDurationMinutes(minutes);
+        entry.setNote(note);
         return entry;
     }
 }
