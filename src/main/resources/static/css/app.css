@@ -131,6 +131,21 @@ h2 {
     color: var(--text);
 }
 
+.training-form .entry-card {
+    transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.training-form .entry-card:focus-within {
+    background: rgba(96, 199, 168, 0.08);
+    border-color: rgba(96, 199, 168, 0.7);
+    box-shadow: 0 0 0 2px rgba(96, 199, 168, 0.18), 0 14px 34px rgba(0, 0, 0, 0.28);
+}
+
+.training-form .entry-card:focus-within .category-icon {
+    color: var(--text);
+    stroke-width: 2.2;
+}
+
 .beta-badge {
     background: rgba(240, 179, 91, 0.16);
     border: 1px solid rgba(240, 179, 91, 0.45);

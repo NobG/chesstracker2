@@ -99,7 +99,9 @@ class DashboardControllerMvcTest {
                         "Aimchess Training abgeschlossen",
                         "href=\"/favicon.svg\"",
                         "id=\"icon-category-target\"",
-                        "href=\"#icon-category-target\""
+                        "href=\"#icon-category-target\"",
+                        "class=\"training-form\"",
+                        "class=\"entry-card\""
                 )
                 .doesNotContain(
                         "name=\"form.entries[0].categoryId\"",
