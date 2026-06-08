@@ -1,7 +1,10 @@
 package com.nobg.chesstracker2.service;
 
 import com.nobg.chesstracker2.model.DailyTrainingEntry;
+import com.nobg.chesstracker2.model.DailyCompletionStatus;
+import com.nobg.chesstracker2.model.DailyNote;
 import com.nobg.chesstracker2.model.TrainingCategory;
+import com.nobg.chesstracker2.repository.DailyNoteRepository;
 import com.nobg.chesstracker2.repository.DailyTrainingEntryRepository;
 import com.nobg.chesstracker2.repository.TrainingCategoryRepository;
 import com.nobg.chesstracker2.viewmodel.CategoryStatViewModel;
@@ -27,10 +30,16 @@ public class StatsService {
 
     private final DailyTrainingEntryRepository entryRepository;
     private final TrainingCategoryRepository categoryRepository;
+    private final DailyNoteRepository noteRepository;
 
-    public StatsService(DailyTrainingEntryRepository entryRepository, TrainingCategoryRepository categoryRepository) {
+    public StatsService(
+            DailyTrainingEntryRepository entryRepository,
+            TrainingCategoryRepository categoryRepository,
+            DailyNoteRepository noteRepository
+    ) {
         this.entryRepository = entryRepository;
         this.categoryRepository = categoryRepository;
+        this.noteRepository = noteRepository;
     }
 
     @Transactional(readOnly = true)
@@ -41,6 +50,7 @@ public class StatsService {
                 .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate end = start.plusDays(6);
         List<DailyTrainingEntry> entries = trainedBetween(start, end);
+        StatusCounts statusCounts = statusCounts(start, end, entries);
         List<WeekDayViewModel> days = new ArrayList<>();
         for (int i = 0; i < 7; i++) {
             LocalDate date = start.plusDays(i);
@@ -67,6 +77,9 @@ public class StatsService {
                 TrainingCalculator.totalTasks(entries),
                 TrainingCalculator.totalDuration(entries),
                 rate,
+                statusCounts.completed(),
+                statusCounts.partial(),
+                statusCounts.openWithEntries(),
                 bestCategory(categories),
                 weakestCategory(categories),
                 "Woche " + week + " enthaelt " + entries.size() + " Trainingseintraege mit "
@@ -80,6 +93,7 @@ public class StatsService {
         LocalDate start = yearMonth.atDay(1);
         LocalDate end = yearMonth.atEndOfMonth();
         List<DailyTrainingEntry> entries = trainedBetween(start, end);
+        StatusCounts statusCounts = statusCounts(start, end, entries);
         Map<LocalDate, List<DailyTrainingEntry>> byDay = entries.stream().collect(Collectors.groupingBy(DailyTrainingEntry::getTrainingDate));
         List<CategoryStatViewModel> categories = categoryStats(entries);
         Integer rate = TrainingCalculator.successRate(TrainingCalculator.totalSuccess(entries), TrainingCalculator.totalTasks(entries));
@@ -94,6 +108,9 @@ public class StatsService {
                 TrainingCalculator.totalDuration(entries),
                 TrainingCalculator.totalTasks(entries),
                 rate,
+                statusCounts.completed(),
+                statusCounts.partial(),
+                TrainingCalculator.successRate(statusCounts.completed(), trainingDays),
                 categories,
                 categories.stream().filter(category -> "steigend".equals(category.trend())).map(CategoryStatViewModel::categoryName).toList(),
                 categories.stream().filter(category -> "fallend".equals(category.trend())).map(CategoryStatViewModel::categoryName).toList(),
@@ -114,6 +131,31 @@ public class StatsService {
                 .stream()
                 .filter(DailyTrainingEntry::isTrained)
                 .toList();
+    }
+
+    private StatusCounts statusCounts(LocalDate start, LocalDate end, List<DailyTrainingEntry> entries) {
+        Map<LocalDate, DailyCompletionStatus> statuses = noteRepository.findByTrainingDateBetween(start, end)
+                .stream()
+                .collect(Collectors.toMap(DailyNote::getTrainingDate, DailyNote::getCompletionStatus));
+        List<LocalDate> daysWithEntries = entries.stream()
+                .map(DailyTrainingEntry::getTrainingDate)
+                .distinct()
+                .toList();
+
+        int completed = 0;
+        int partial = 0;
+        int open = 0;
+        for (LocalDate day : daysWithEntries) {
+            DailyCompletionStatus status = statuses.getOrDefault(day, DailyCompletionStatus.OPEN);
+            if (status == DailyCompletionStatus.COMPLETED) {
+                completed++;
+            } else if (status == DailyCompletionStatus.PARTIAL) {
+                partial++;
+            } else {
+                open++;
+            }
+        }
+        return new StatusCounts(completed, partial, open);
     }
 
     private List<CategoryStatViewModel> categoryStats(List<DailyTrainingEntry> entries) {
@@ -197,5 +239,8 @@ public class StatsService {
 
     private String displayRate(Integer rate) {
         return rate == null ? "-" : rate + "%";
+    }
+
+    private record StatusCounts(int completed, int partial, int openWithEntries) {
     }
 }

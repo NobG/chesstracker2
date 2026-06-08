@@ -2,6 +2,8 @@ package com.nobg.chesstracker2.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -23,6 +25,10 @@ public class DailyNote {
     private LocalDate trainingDate;
 
     private String note;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private DailyCompletionStatus completionStatus = DailyCompletionStatus.OPEN;
 
     @Column(nullable = false)
     private OffsetDateTime createdAt;
@@ -60,5 +66,13 @@ public class DailyNote {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public DailyCompletionStatus getCompletionStatus() {
+        return completionStatus;
+    }
+
+    public void setCompletionStatus(DailyCompletionStatus completionStatus) {
+        this.completionStatus = completionStatus == null ? DailyCompletionStatus.OPEN : completionStatus;
     }
 }

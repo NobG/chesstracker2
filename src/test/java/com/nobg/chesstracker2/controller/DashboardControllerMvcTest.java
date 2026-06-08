@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.nobg.chesstracker2.model.DailyTrainingEntry;
+import com.nobg.chesstracker2.model.DailyCompletionStatus;
 import com.nobg.chesstracker2.model.TrainingCategory;
 import com.nobg.chesstracker2.repository.DailyNoteRepository;
 import com.nobg.chesstracker2.repository.DailyTrainingEntryRepository;
@@ -59,12 +60,18 @@ class DashboardControllerMvcTest {
                         "name=\"entries[0].score\"",
                         "name=\"entries[0].durationMinutes\"",
                         "name=\"entries[0].note\"",
-                        "name=\"dayNote\""
+                        "name=\"dayNote\"",
+                        "name=\"completionStatus\"",
+                        "value=\"OPEN\"",
+                        "value=\"PARTIAL\"",
+                        "value=\"COMPLETED\"",
+                        "Aimchess Training abgeschlossen"
                 )
                 .doesNotContain(
                         "name=\"form.entries[0].categoryId\"",
                         "name=\"form.entries[0].durationMinutes\"",
-                        "name=\"form.dayNote\""
+                        "name=\"form.dayNote\"",
+                        "name=\"form.completionStatus\""
                 );
     }
 
@@ -80,6 +87,7 @@ class DashboardControllerMvcTest {
                         .param("entries[0].score", "1200")
                         .param("entries[0].durationMinutes", "5")
                         .param("entries[0].note", "Test")
+                        .param("completionStatus", "PARTIAL")
                         .param("dayNote", "Tagesnotiz"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/today"));
@@ -90,6 +98,8 @@ class DashboardControllerMvcTest {
         assertThat(saved.getTotalCount()).isEqualTo(5);
         assertThat(saved.getDurationMinutes()).isEqualTo(5);
         assertThat(saved.getNote()).isEqualTo("Test");
+        assertThat(noteRepository.findByTrainingDate(today).orElseThrow().getCompletionStatus())
+                .isEqualTo(DailyCompletionStatus.PARTIAL);
 
         mockMvc.perform(post("/today/entries")
                         .param("entries[0].categoryId", tactics.getId().toString())
@@ -97,7 +107,8 @@ class DashboardControllerMvcTest {
                         .param("entries[0].result", "4/5")
                         .param("entries[0].score", "1300")
                         .param("entries[0].durationMinutes", "10")
-                        .param("entries[0].note", "Aktualisiert"))
+                        .param("entries[0].note", "Aktualisiert")
+                        .param("completionStatus", "COMPLETED"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/today"));
 
@@ -109,6 +120,8 @@ class DashboardControllerMvcTest {
         assertThat(updated.getScore()).isEqualTo(1300);
         assertThat(updated.getDurationMinutes()).isEqualTo(10);
         assertThat(updated.getNote()).isEqualTo("Aktualisiert");
+        assertThat(noteRepository.findByTrainingDate(today).orElseThrow().getCompletionStatus())
+                .isEqualTo(DailyCompletionStatus.COMPLETED);
     }
 
     private TrainingCategory tactics() {

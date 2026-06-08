@@ -8,6 +8,8 @@
         <p class="eyebrow">Aimchess Training</p>
         <h1 th:text="${view.date}">2026-06-08</h1>
         <p th:text="${view.summary.automaticSummary}">Heute sind noch keine Einheiten erfasst.</p>
+        <p class="status-line" th:classappend="' status-line--' + ${view.summary.completionStatus().name().toLowerCase()}"
+           th:text="'Status: ' + ${view.summary.completionStatusLabel()}" >Status: Offen</p>
     </section>
 
     <div class="alert success" th:if="${successMessage}" th:text="${successMessage}"></div>
@@ -64,6 +66,13 @@
         </section>
 
         <section class="panel">
+            <div class="status-options">
+                <p class="eyebrow">Tagesstatus</p>
+                <label class="status-option" th:each="status : ${T(com.nobg.chesstracker2.model.DailyCompletionStatus).values()}">
+                    <input type="radio" th:field="*{completionStatus}" th:value="${status}">
+                    <span th:text="${status.displayLabel()}">Offen</span>
+                </label>
+            </div>
             <label>Tagesnotiz
                 <textarea rows="4" th:field="*{dayNote}" placeholder="Kurze Gesamtnotiz fuer den Tag"></textarea>
             </label>

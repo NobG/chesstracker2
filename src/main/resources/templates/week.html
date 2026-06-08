@@ -36,6 +36,9 @@
             <div class="insight-list">
                 <p><span>Beste Kategorie</span><strong th:text="${stats.bestCategory()}">-</strong></p>
                 <p><span>Schwaechste Kategorie</span><strong th:text="${stats.weakestCategory()}">-</strong></p>
+                <p><span>Abgeschlossene Trainingstage</span><strong th:text="${stats.completedTrainingDays()}">0</strong></p>
+                <p><span>Teilweise bearbeitet</span><strong th:text="${stats.partialTrainingDays()}">0</strong></p>
+                <p><span>Offen</span><strong th:text="${stats.openTrainingDaysWithEntries()}">0</strong></p>
             </div>
         </div>
     </section>

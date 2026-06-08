@@ -123,6 +123,21 @@ Flyway fuehrt beim Start automatisch Migrationen aus:
 
 - `V001__initial_schema.sql`
 - `V002__seed_training_categories.sql`
+- `V003__add_daily_completion_status.sql`
+
+## Tagesabschluss
+
+Jeder Trainingstag hat einen Abschlussstatus:
+
+- `OPEN`: offen
+- `PARTIAL`: teilweise bearbeitet
+- `COMPLETED`: Aimchess Training abgeschlossen
+
+Der Status wird mit der Tagesnotiz in `daily_notes` gespeichert und im Copy-Block ausgegeben. Wochen- und Monatsstatistik zaehlen abgeschlossene und teilweise bearbeitete Trainingstage. Die Abschlussquote im Monat ist im MVP definiert als:
+
+```text
+COMPLETED-Tage / Tage mit Trainingseintraegen
+```
 
 ## Build
 

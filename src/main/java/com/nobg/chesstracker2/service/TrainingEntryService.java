@@ -2,6 +2,7 @@ package com.nobg.chesstracker2.service;
 
 import com.nobg.chesstracker2.dto.TrainingDayForm;
 import com.nobg.chesstracker2.dto.TrainingEntryForm;
+import com.nobg.chesstracker2.model.DailyCompletionStatus;
 import com.nobg.chesstracker2.model.DailyNote;
 import com.nobg.chesstracker2.model.DailyTrainingEntry;
 import com.nobg.chesstracker2.model.TrainingCategory;
@@ -45,9 +46,13 @@ public class TrainingEntryService {
                 .stream()
                 .collect(Collectors.toMap(entry -> entry.getCategory().getId(), Function.identity()));
         String dayNote = noteRepository.findByTrainingDate(date).map(DailyNote::getNote).orElse("");
+        DailyCompletionStatus completionStatus = noteRepository.findByTrainingDate(date)
+                .map(DailyNote::getCompletionStatus)
+                .orElse(DailyCompletionStatus.OPEN);
 
         TrainingDayForm form = new TrainingDayForm();
         form.setDayNote(dayNote);
+        form.setCompletionStatus(completionStatus);
         List<CategoryEntryViewModel> rows = new ArrayList<>();
 
         for (TrainingCategory category : categories) {
@@ -103,6 +108,7 @@ public class TrainingEntryService {
         DailyNote dailyNote = noteRepository.findByTrainingDate(date).orElseGet(DailyNote::new);
         dailyNote.setTrainingDate(date);
         dailyNote.setNote(blankToNull(form.getDayNote()));
+        dailyNote.setCompletionStatus(form.getCompletionStatus());
         noteRepository.save(dailyNote);
     }
 
@@ -113,6 +119,9 @@ public class TrainingEntryService {
                 .filter(DailyTrainingEntry::isTrained)
                 .toList();
         String dayNote = noteRepository.findByTrainingDate(date).map(DailyNote::getNote).orElse("");
+        DailyCompletionStatus completionStatus = noteRepository.findByTrainingDate(date)
+                .map(DailyNote::getCompletionStatus)
+                .orElse(DailyCompletionStatus.OPEN);
         int success = TrainingCalculator.totalSuccess(trainedEntries);
         int total = TrainingCalculator.totalTasks(trainedEntries);
         int duration = TrainingCalculator.totalDuration(trainedEntries);
@@ -131,8 +140,10 @@ public class TrainingEntryService {
                 rate,
                 duration,
                 dayNote,
+                completionStatus,
+                completionStatus.displayLabel(),
                 summary,
-                copyBlock(date, entries, success, total, rate, duration, dayNote)
+                copyBlock(date, entries, success, total, rate, duration, dayNote, completionStatus)
         );
     }
 
@@ -153,9 +164,19 @@ public class TrainingEntryService {
         );
     }
 
-    private String copyBlock(LocalDate date, List<CategoryEntryViewModel> entries, int success, int total, Integer rate, int duration, String dayNote) {
+    private String copyBlock(
+            LocalDate date,
+            List<CategoryEntryViewModel> entries,
+            int success,
+            int total,
+            Integer rate,
+            int duration,
+            String dayNote,
+            DailyCompletionStatus completionStatus
+    ) {
         StringBuilder builder = new StringBuilder();
         builder.append("Aimchess Training - ").append(date).append("\n\n");
+        builder.append("Tagesstatus: ").append(completionStatus.displayLabel()).append("\n\n");
         builder.append("Trainierte Kategorien:\n");
         if (entries.isEmpty()) {
             builder.append("- Keine Eintraege\n");

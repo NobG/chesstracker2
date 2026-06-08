@@ -29,6 +29,11 @@
             <ul th:if="${!stats.declinedCategories().isEmpty()}">
                 <li th:each="name : ${stats.declinedCategories()}" th:text="${name}">Calculation</li>
             </ul>
+            <div class="insight-list">
+                <p><span>Abgeschlossene Trainingstage</span><strong th:text="${stats.completedTrainingDays()}">0</strong></p>
+                <p><span>Teilweise bearbeitet</span><strong th:text="${stats.partialTrainingDays()}">0</strong></p>
+                <p><span>Abschlussquote</span><strong th:text="${stats.completionRate() == null ? '-' : stats.completionRate() + '%'}">-</strong></p>
+            </div>
         </div>
     </section>
     <section class="panel">

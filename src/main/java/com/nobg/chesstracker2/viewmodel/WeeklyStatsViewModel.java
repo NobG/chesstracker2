@@ -15,6 +15,9 @@ public record WeeklyStatsViewModel(
         int totalTasks,
         int totalDurationMinutes,
         Integer successRate,
+        int completedTrainingDays,
+        int partialTrainingDays,
+        int openTrainingDaysWithEntries,
         String bestCategory,
         String weakestCategory,
         String summary
