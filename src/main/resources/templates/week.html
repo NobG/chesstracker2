@@ -48,7 +48,14 @@
             <thead><tr><th>Kategorie</th><th>Einheiten</th><th>Aufgaben</th><th>Quote</th><th>Trend</th></tr></thead>
             <tbody>
             <tr th:each="category : ${stats.categories()}">
-                <td th:text="${category.categoryName()}">Tactics</td>
+                <td>
+                    <span class="category-label category-label--table">
+                        <svg class="category-icon" aria-hidden="true" focusable="false">
+                            <use th:href="${'#icon-category-' + category.iconKey()}"></use>
+                        </svg>
+                        <span th:text="${category.categoryName()}">Tactics</span>
+                    </span>
+                </td>
                 <td th:text="${category.trainingUnits()}">0</td>
                 <td th:text="${category.successCount()} + '/' + ${category.totalCount()}">0/0</td>
                 <td th:text="${category.successRate() == null ? '-' : category.successRate() + '%'}">-</td>

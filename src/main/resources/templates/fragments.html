@@ -4,10 +4,57 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${title} + ' - chesstracker2'">chesstracker2</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
 <header class="topnav" th:fragment="topnav">
+    <svg class="svg-sprite" aria-hidden="true" focusable="false">
+        <symbol id="icon-category-target" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="8"></circle>
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path>
+        </symbol>
+        <symbol id="icon-category-branches" viewBox="0 0 24 24">
+            <circle cx="6" cy="6" r="2"></circle>
+            <circle cx="18" cy="6" r="2"></circle>
+            <circle cx="12" cy="18" r="2"></circle>
+            <path d="M8 7.5 12 12l4-4.5M12 12v4"></path>
+        </symbol>
+        <symbol id="icon-category-eye" viewBox="0 0 24 24">
+            <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+        </symbol>
+        <symbol id="icon-category-rook" viewBox="0 0 24 24">
+            <path d="M7 4h3v3h4V4h3v7l-2 2v5H7v-5l-2-2V4h2Z"></path>
+            <path d="M5 21h14M8 18h8"></path>
+        </symbol>
+        <symbol id="icon-category-book" viewBox="0 0 24 24">
+            <path d="M5 4h7a3 3 0 0 1 3 3v15a3 3 0 0 0-3-3H5Z"></path>
+            <path d="M15 7a3 3 0 0 1 3-3h1v15h-1a3 3 0 0 0-3 3"></path>
+        </symbol>
+        <symbol id="icon-category-compass" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="m15 9-2 6-6 2 2-6Z"></path>
+        </symbol>
+        <symbol id="icon-category-shield" viewBox="0 0 24 24">
+            <path d="M12 3 5 6v5c0 5 3 8 7 10 4-2 7-5 7-10V6Z"></path>
+        </symbol>
+        <symbol id="icon-category-warning" viewBox="0 0 24 24">
+            <path d="M12 3 2.5 20h19Z"></path>
+            <path d="M12 8v6M12 17h.1"></path>
+        </symbol>
+        <symbol id="icon-category-clock" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 7v5l3 2"></path>
+        </symbol>
+        <symbol id="icon-category-flag" viewBox="0 0 24 24">
+            <path d="M6 21V4h11l-2 4 2 4H6"></path>
+        </symbol>
+        <symbol id="icon-category-chess" viewBox="0 0 24 24">
+            <path d="M8 21h8M9 17h6M10 17c-1-5 1-8 5-11-3 0-5-1-6-3-1 3-1 5 1 7"></path>
+        </symbol>
+    </svg>
     <a class="brand" href="/today">chesstracker2</a>
     <nav>
         <a href="/today">Heute</a>

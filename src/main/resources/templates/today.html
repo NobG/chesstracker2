@@ -40,7 +40,12 @@
                 <input type="hidden" th:field="*{entries[__${stat.index}__].categoryId}">
                 <div class="entry-card__head">
                     <div>
-                        <h2 th:text="${entry.categoryName()}">Tactics</h2>
+                        <h2 class="category-label">
+                            <svg class="category-icon" aria-hidden="true" focusable="false">
+                                <use th:href="${'#icon-category-' + entry.iconKey()}"></use>
+                            </svg>
+                            <span th:text="${entry.categoryName()}">Tactics</span>
+                        </h2>
                         <p th:text="${entry.description()}">Beschreibung</p>
                     </div>
                     <label class="switch">

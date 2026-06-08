@@ -3,6 +3,7 @@ package com.nobg.chesstracker2.viewmodel;
 public record CategoryEntryViewModel(
         Long categoryId,
         String categoryName,
+        String iconKey,
         String description,
         boolean trained,
         String result,

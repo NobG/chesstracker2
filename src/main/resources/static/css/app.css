@@ -46,6 +46,12 @@ a {
     font-weight: 800;
 }
 
+.svg-sprite {
+    height: 0;
+    position: absolute;
+    width: 0;
+}
+
 .topnav nav {
     display: flex;
     flex-wrap: wrap;
@@ -93,6 +99,36 @@ h1 {
 
 h2 {
     font-size: 1.1rem;
+}
+
+.category-label {
+    align-items: center;
+    display: inline-flex;
+    gap: 10px;
+}
+
+.category-label--table {
+    font-weight: 800;
+}
+
+.category-icon {
+    color: var(--accent);
+    flex: 0 0 auto;
+    height: 22px;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+    width: 22px;
+}
+
+.category-icon,
+.category-icon * {
+    fill: none;
+}
+
+.entry-card:hover .category-icon {
+    color: var(--text);
 }
 
 p {

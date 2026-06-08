@@ -65,13 +65,33 @@ class DashboardControllerMvcTest {
                         "value=\"OPEN\"",
                         "value=\"PARTIAL\"",
                         "value=\"COMPLETED\"",
-                        "Aimchess Training abgeschlossen"
+                        "Aimchess Training abgeschlossen",
+                        "href=\"/favicon.svg\"",
+                        "id=\"icon-category-target\"",
+                        "href=\"#icon-category-target\""
                 )
                 .doesNotContain(
                         "name=\"form.entries[0].categoryId\"",
                         "name=\"form.entries[0].durationMinutes\"",
                         "name=\"form.dayNote\"",
                         "name=\"form.completionStatus\""
+                );
+    }
+
+    @Test
+    void categoriesRenderFaviconAndCategoryIcons() throws Exception {
+        MvcResult result = mockMvc.perform(get("/categories"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html)
+                .contains(
+                        "href=\"/favicon.svg\"",
+                        "class=\"category-label\"",
+                        "class=\"category-icon\"",
+                        "href=\"#icon-category-target\"",
+                        "Tactics"
                 );
     }
 

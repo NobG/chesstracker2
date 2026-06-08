@@ -149,11 +149,23 @@ public class TrainingEntryService {
 
     private CategoryEntryViewModel toCategoryView(TrainingCategory category, DailyTrainingEntry entry) {
         if (entry == null) {
-            return new CategoryEntryViewModel(category.getId(), category.getName(), category.getDescription(), false, "", null, null, "", null);
+            return new CategoryEntryViewModel(
+                    category.getId(),
+                    category.getName(),
+                    CategoryIconMapper.iconKeyFor(category.getKey()),
+                    category.getDescription(),
+                    false,
+                    "",
+                    null,
+                    null,
+                    "",
+                    null
+            );
         }
         return new CategoryEntryViewModel(
                 category.getId(),
                 category.getName(),
+                CategoryIconMapper.iconKeyFor(category.getKey()),
                 category.getDescription(),
                 entry.isTrained(),
                 resultText(entry.getSuccessCount(), entry.getTotalCount()),

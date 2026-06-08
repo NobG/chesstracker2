@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 public record CategoryStatViewModel(
         String categoryName,
+        String iconKey,
         int trainingUnits,
         int successCount,
         int totalCount,

@@ -189,6 +189,7 @@ public class StatsService {
         DailyTrainingEntry last = entries.stream().max(Comparator.comparing(DailyTrainingEntry::getTrainingDate)).orElse(null);
         return new CategoryStatViewModel(
                 category.getName(),
+                CategoryIconMapper.iconKeyFor(category.getKey()),
                 entries.size(),
                 success,
                 total,
