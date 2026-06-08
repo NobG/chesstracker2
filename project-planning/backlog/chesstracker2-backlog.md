@@ -14,6 +14,11 @@
 
 ## Spaeter
 
+- Rating-Snapshots manuell erfassen und Verlauf anzeigen
+- Lichess Rating automatisch per API abrufen
+- Training und Rating-Verlauf korrelieren
+- Turniermodul ergaenzen
+- Partienlog ergaenzen
 - Kategoriepflege im UI
 - Detailseite je Kategorie mit Diagramm
 - Export als CSV

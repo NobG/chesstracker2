@@ -6,13 +6,11 @@ Der chesstracker2-MVP ist als neues Spring-Boot-Projekt aufgebaut. Die Anwendung
 
 ## Aktueller Fokus
 
-1. Dokumentierter Docker-Compose-Zielbetrieb fuer Ubuntu
-2. App-Container `chesstracker2-app`
-3. PostgreSQL-Container `chesstracker2-db` mit persistentem Volume
-4. nginx als Host-Reverse-Proxy auf `127.0.0.1:8080`
-5. Hostnet-Compose als aktuell validierte Zielserver-Betriebsart
-6. Deploy-Skript fuer Zielserver-Workflow
-7. Docker-Bridge-Reparatur als technische Folgeaufgabe
+1. Aimchess-Tracking-MVP stabil halten
+2. Hostnet-Compose als aktuell validierte Zielserver-Betriebsart
+3. Deploy-Skript fuer Zielserver-Workflow
+4. Docker-Bridge-Reparatur als technische Folgeaufgabe
+5. Naechster fachlicher Ausbau: Rating-Snapshots manuell erfassen und Verlauf anzeigen
 
 ## Technische Zielnamen
 
@@ -38,6 +36,7 @@ Der chesstracker2-MVP ist als neues Spring-Boot-Projekt aufgebaut. Die Anwendung
 - Story 06-08: umgesetzt als MVP-Grundlage
 - Story 09: Docker-Compose-Deployment vorbereitet und Zielserver-Hostnet-Betrieb dokumentiert
 - Story 10: Smoke-Tests fuer App, Docker und Hostnet-Betrieb vorbereitet; Hostnet-Deploy-Skript ergaenzt
+- Story 11: Rating-Snapshots als naechster fachlicher Ausbau geplant
 
 ## Hinweis
 
