@@ -32,7 +32,7 @@
         </article>
     </section>
 
-    <form class="training-form" method="post" th:action="${saveAction}" th:object="${view.form}">
+    <form class="training-form" method="post" th:action="${saveAction}" th:object="${form}">
         <section class="entry-grid">
             <article class="entry-card" th:each="formEntry, stat : ${view.form.entries}" th:with="entry=${view.entries[stat.index]}">
                 <input type="hidden" th:field="*{entries[__${stat.index}__].categoryId}">

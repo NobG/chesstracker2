@@ -32,9 +32,11 @@ public class DashboardController {
 
     @GetMapping("/today")
     public String today(Model model) {
+        var view = trainingEntryService.todayView(LocalDate.now());
         model.addAttribute("pageTitle", "Heute");
         model.addAttribute("saveAction", "/today/entries");
-        model.addAttribute("view", trainingEntryService.todayView(LocalDate.now()));
+        model.addAttribute("view", view);
+        model.addAttribute("form", view.form());
         return "today";
     }
 
@@ -51,9 +53,11 @@ public class DashboardController {
 
     @GetMapping("/day/{date}")
     public String day(@PathVariable LocalDate date, Model model) {
+        var view = trainingEntryService.todayView(date);
         model.addAttribute("pageTitle", "Tag " + date);
         model.addAttribute("saveAction", "/day/" + date + "/entries");
-        model.addAttribute("view", trainingEntryService.todayView(date));
+        model.addAttribute("view", view);
+        model.addAttribute("form", view.form());
         return "today";
     }
 
