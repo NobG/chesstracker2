@@ -23,6 +23,7 @@
 - Detailseite je Kategorie mit Diagramm
 - Export als CSV
 - Kalenderansicht
+- Verbesserte Tagesbewertung: aktuelle `automaticSummary` nicht nur nach Erfolgsquote bewerten, sondern Trainingsumfang, Tagesabschluss, Kategorie-Mix, Quote, Score und gespeicherte Notizen getrennt ausweisen; Formulierung neutraler machen und erklaeren, dass es eine Regelbewertung ist, keine KI-Analyse.
 - Verbesserte Validierung mit Inline-Fehlern
 - Optional TLS-Automatisierung fuer nginx/certbot dokumentieren
 - Restore-Prozess auf Staging-System testen
