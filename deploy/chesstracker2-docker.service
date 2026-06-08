@@ -1,5 +1,5 @@
 [Unit]
-Description=chesstracker2 Docker Compose service
+Description=chesstracker2 Docker Compose service (standard bridge network)
 Requires=docker.service
 After=docker.service network-online.target
 

@@ -1,24 +1,62 @@
 # chesstracker2 auf Ubuntu mit Docker Compose installieren
 
-Diese Anleitung beschreibt die Installation auf deinem Ubuntu-Server. Codex hat keinen Zugriff auf deinen Zielserver und hat dort keine Befehle ausgefuehrt. Du fuehrst die Schritte selbst auf dem Server aus.
+Diese Anleitung beschreibt die Installation auf einem Ubuntu-Server. Codex hat keinen Zugriff auf den Zielserver und hat dort keine Befehle ausgefuehrt. Die Zielserver-Befunde in dieser Datei stammen aus der manuellen Installation und Validierung des Nutzers.
 
-Java und PostgreSQL muessen auf dem Server nicht direkt installiert werden. Beide laufen in Containern. Benoetigt werden Docker, Docker Compose, Git und optional nginx auf dem Host.
+Repository:
 
-## 10.1 Ueberblick
+```text
+https://github.com/NobG/chesstracker2.git
+```
 
-Zielarchitektur:
+Zielserver des Nutzers:
+
+```text
+IP: 82.165.0.60
+Domain: chesstracker2.litux.de
+Projektpfad: /opt/chesstracker2
+```
+
+## 1. Betriebsvarianten
+
+Es gibt zwei Compose-Dateien:
+
+- `docker-compose.yml`: Standardvariante fuer normale Docker-Hosts mit getrenntem Docker-Bridge-Netz.
+- `docker-compose.hostnet.yml`: aktuell validierter Zielserver-Workaround mit `network_mode: host`.
+
+Auf dem Zielserver des Nutzers muss aktuell die Hostnet-Datei verwendet werden:
+
+```bash
+docker compose -f docker-compose.hostnet.yml up -d
+```
+
+Nicht versehentlich nur `docker compose up -d` ausfuehren, wenn der Zielserver weiter das gemeldete Docker-Bridge-Problem hat.
+
+## 2. Zielarchitektur
+
+Standard-Bridge-Compose:
 
 ```text
 Ubuntu Host
 |-- nginx auf dem Host
-`-- Docker Compose
+`-- Docker Compose Bridge-Netz
     |-- chesstracker2-app
-    `-- chesstracker2-db mit persistentem Volume
+    `-- chesstracker2-db mit Volume chesstracker2_pgdata
 ```
 
-Der App-Container lauscht intern auf Port `8080`. Docker Compose veroeffentlicht ihn nur lokal auf dem Host, zum Beispiel `127.0.0.1:8080`. nginx kann diesen lokalen Port als Reverse Proxy verwenden.
+Aktueller Zielserver-Workaround:
 
-## 10.2 Voraussetzungen pruefen
+```text
+https://chesstracker2.litux.de
+  -> nginx auf dem Host
+  -> http://127.0.0.1:8080
+  -> chesstracker2-app im Host-Network
+  -> PostgreSQL auf 127.0.0.1:15432
+  -> chesstracker2-db im Host-Network
+```
+
+PostgreSQL lauscht im Hostnet-Compose bewusst nur auf `127.0.0.1:15432`.
+
+## 3. Voraussetzungen pruefen
 
 ```bash
 lsb_release -a
@@ -30,9 +68,7 @@ nginx -v
 
 Wenn Docker fehlt, installiere Docker nach der offiziellen Docker-Dokumentation fuer Ubuntu. Verwende keine unsicheren Curl-Pipe-Shell-Kommandos.
 
-nginx ist optional, aber fuer einen oeffentlichen Hostnamen als Reverse Proxy empfohlen.
-
-## 10.3 Projektverzeichnis anlegen
+## 4. Projektverzeichnis anlegen
 
 ```bash
 sudo mkdir -p /opt/chesstracker2
@@ -40,47 +76,47 @@ sudo chown "$USER":"$USER" /opt/chesstracker2
 cd /opt/chesstracker2
 ```
 
-## 10.4 Projekt auf den Server bringen
-
-Weg A: per Git
+## 5. Projekt auf den Server bringen
 
 ```bash
 git clone https://github.com/NobG/chesstracker2.git /opt/chesstracker2
 cd /opt/chesstracker2
 ```
 
-Weg B: per ZIP/SCP
+Wenn das Verzeichnis bereits existiert:
 
 ```bash
-scp chesstracker2.zip user@server:/opt/
-unzip chesstracker2.zip -d /opt/chesstracker2
 cd /opt/chesstracker2
+git pull
 ```
 
-Wenn du Weg B nutzt, pruefe danach, dass `Dockerfile`, `docker-compose.yml`, `.env.example` und `src/` im Projektverzeichnis liegen.
-
-## 10.5 `.env` erstellen
+## 6. `.env` erstellen
 
 ```bash
 cp .env.example .env
 vi .env
 ```
 
-Passe mindestens diese Werte an:
+Wichtige Werte:
 
-- `POSTGRES_PASSWORD`
-- `SPRING_DATASOURCE_PASSWORD`
-- `APP_PORT`
-- optional `SPRING_PROFILES_ACTIVE`
+```text
+POSTGRES_DB=chesstracker2
+POSTGRES_USER=chesstracker2
+POSTGRES_PASSWORD=<sicheres-passwort>
+APP_PORT=8080
+SPRING_PROFILES_ACTIVE=prod
+SPRING_DATASOURCE_PASSWORD=<gleiches-passwort>
+```
 
 Wichtig:
 
 - `.env` nicht committen.
-- Setze ein sicheres Passwort.
+- Keine Passwoerter oder Secrets in Dokumentation oder Git-Historie schreiben.
 - `POSTGRES_PASSWORD` und `SPRING_DATASOURCE_PASSWORD` muessen identisch sein, solange derselbe Datenbanknutzer verwendet wird.
-- Die interne JDBC-URL lautet `jdbc:postgresql://chesstracker2-db:5432/chesstracker2`.
 
-## 10.6 Container bauen und starten
+## 7. Standardbetrieb fuer normale Docker-Hosts
+
+Diese Variante nutzt `docker-compose.yml` mit Docker-Bridge-Netz:
 
 ```bash
 docker compose config
@@ -90,27 +126,88 @@ docker compose ps
 docker compose logs -f chesstracker2-app
 ```
 
-Beim ersten Start fuehrt Flyway die Datenbankmigrationen automatisch aus.
+Die interne JDBC-URL lautet in dieser Variante:
 
-## 10.7 Funktion pruefen
+```text
+jdbc:postgresql://chesstracker2-db:5432/chesstracker2
+```
+
+## 8. Betriebsvariante auf dem Zielserver: Host-Network-Compose
+
+Das normale Docker-Bridge-Netz war auf dem Zielserver defekt oder blockiert. Die App konnte die DB im Docker-Bridge-Netz nicht erreichen und brach mit `NoRouteToHostException` ab. Laut Nutzer-Validierung scheiterten auch Container-Outbound/DNS-Tests teilweise im Bridge-Netz.
+
+Die aktuell funktionierende Zielserver-Variante ist:
+
+```bash
+docker compose -f docker-compose.hostnet.yml up -d
+```
+
+Dabei gilt:
+
+- `chesstracker2-app` nutzt `network_mode: host`.
+- `chesstracker2-db` nutzt `network_mode: host`.
+- PostgreSQL lauscht auf `127.0.0.1:15432`.
+- Die App lauscht lokal auf `127.0.0.1:8080`.
+- Die App verbindet sich mit `jdbc:postgresql://127.0.0.1:15432/chesstracker2`.
+- Daten liegen im Volume `chesstracker2_pgdata`.
+
+Status pruefen:
+
+```bash
+docker compose -f docker-compose.hostnet.yml ps
+```
+
+Logs:
+
+```bash
+docker compose -f docker-compose.hostnet.yml logs -f chesstracker2-app
+docker compose -f docker-compose.hostnet.yml logs -f chesstracker2-db
+```
+
+Restart:
+
+```bash
+docker compose -f docker-compose.hostnet.yml restart chesstracker2-app
+```
+
+Stop:
+
+```bash
+docker compose -f docker-compose.hostnet.yml down
+```
+
+Nicht `docker compose down -v` ausfuehren, ausser die Datenbankdaten sollen bewusst geloescht werden.
+
+## 9. Funktion pruefen
+
+Lokal auf dem Server:
 
 ```bash
 curl -I http://127.0.0.1:8080/today
-curl http://127.0.0.1:8080/today | head
+curl -I http://127.0.0.1:8080/week
+curl -I http://127.0.0.1:8080/month
+curl -I http://127.0.0.1:8080/categories
 ```
 
-Falls vorhanden:
+Smoke-Tests:
 
 ```bash
 BASE_URL=http://127.0.0.1:8080 ./scripts/smoke-test.sh
-./scripts/smoke-test-docker.sh
+BASE_URL=http://127.0.0.1:8080 ./scripts/smoke-test-hostnet.sh
+PUBLIC_BASE_URL=https://chesstracker2.litux.de ./scripts/smoke-test-hostnet.sh
 ```
 
-Diese Smoke-Tests sind lokal bzw. auf deinem Server ausfuehrbar. Sie wurden nicht auf deinem Zielserver durch Codex ausgefuehrt.
+Diese Tests sind lokal bzw. auf dem Server ausfuehrbar. Sie wurden nicht auf dem Zielserver durch Codex ausgefuehrt.
 
-## 10.8 nginx einrichten
+## 10. nginx einrichten
 
-Passe zuerst `server_name` in `deploy/nginx-chesstracker2.conf` auf deine Domain an.
+Die Datei `deploy/nginx-chesstracker2.conf` enthaelt den HTTP-Reverse-Proxy fuer:
+
+```text
+chesstracker2.litux.de -> http://127.0.0.1:8080
+```
+
+Installation:
 
 ```bash
 sudo cp deploy/nginx-chesstracker2.conf /etc/nginx/sites-available/chesstracker2
@@ -119,14 +216,38 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-Die MVP-Konfiguration enthaelt keine TLS-Einrichtung. TLS kannst du spaeter zum Beispiel mit certbot ergaenzen.
+HTTPS mit Let's Encrypt/Certbot:
 
-## 10.9 systemd-Service fuer Docker Compose einrichten
+```bash
+sudo certbot --nginx -d chesstracker2.litux.de
+```
 
-Die empfohlene Betriebsart ist Docker Compose. Der systemd-Service startet und stoppt Compose im Projektverzeichnis.
+Certbot ergaenzt die echten Zertifikatspfade in der nginx-Konfiguration und kann HTTP auf HTTPS umleiten lassen.
+
+Firewall-Erwartung:
+
+- `80/tcp` oeffentlich erlaubt
+- `443/tcp` oeffentlich erlaubt
+- `8080/tcp` nicht oeffentlich freigegeben
+- `15432/tcp` nicht oeffentlich freigegeben
+
+## 11. systemd-Service einrichten
+
+Fuer normale Docker-Hosts mit Bridge-Netz:
 
 ```bash
 sudo cp deploy/chesstracker2-docker.service /etc/systemd/system/chesstracker2.service
+```
+
+Fuer den aktuellen Zielserver mit Hostnet-Workaround:
+
+```bash
+sudo cp deploy/chesstracker2-hostnet.service /etc/systemd/system/chesstracker2.service
+```
+
+Danach:
+
+```bash
 sudo systemctl daemon-reload
 sudo systemctl enable chesstracker2
 sudo systemctl start chesstracker2
@@ -135,96 +256,104 @@ sudo systemctl status chesstracker2
 
 Wenn dein Projekt nicht unter `/opt/chesstracker2` liegt, passe `WorkingDirectory` in der Unit vorher an.
 
-## 10.10 Betrieb
+## 12. Updates im Hostnet-Betrieb
 
-```bash
-docker compose ps
-docker compose logs -f
-docker compose logs -f chesstracker2-app
-docker compose logs -f chesstracker2-db
-docker compose restart chesstracker2-app
-docker compose down
-docker compose up -d
-```
-
-`docker compose down` stoppt und entfernt Container, behaelt aber das Datenbank-Volume.
-
-## 10.11 Updates
+Auf dem Zielserver nutzt der Build aktuell `--network=host`, weil Maven im normalen Docker-Build-Netz keine externen Repositories erreichen konnte.
 
 ```bash
 cd /opt/chesstracker2
 git pull
-docker compose build
-docker compose up -d
-docker compose logs -f chesstracker2-app
+docker build --network=host -t chesstracker2-chesstracker2-app .
+docker compose -f docker-compose.hostnet.yml up -d
+docker compose -f docker-compose.hostnet.yml ps
+curl -I https://chesstracker2.litux.de/today
 ```
 
-Flyway laeuft beim App-Start automatisch und wendet neue Migrationen an.
-
-## 10.12 Backup
+## 13. Backup und Restore im Hostnet-Betrieb
 
 Backup:
 
 ```bash
+cd /opt/chesstracker2
 mkdir -p backups
-docker compose exec -T chesstracker2-db pg_dump -U chesstracker2 -d chesstracker2 > backups/chesstracker2_$(date +%F_%H-%M-%S).sql
+
+docker compose -f docker-compose.hostnet.yml exec -T chesstracker2-db \
+  pg_dump -h 127.0.0.1 -p 15432 -U chesstracker2 -d chesstracker2 \
+  > backups/chesstracker2_$(date +%F_%H-%M-%S).sql
 ```
 
 Restore:
 
 ```bash
-cat backups/backup.sql | docker compose exec -T chesstracker2-db psql -U chesstracker2 -d chesstracker2
+cat backups/backup.sql | docker compose -f docker-compose.hostnet.yml exec -T chesstracker2-db \
+  psql -h 127.0.0.1 -p 15432 -U chesstracker2 -d chesstracker2
 ```
 
-Unterschied beim Stoppen:
+## 14. Diagnose
+
+Hostnet-Betrieb:
 
 ```bash
-docker compose down
-```
+cd /opt/chesstracker2
 
-Daten bleiben erhalten.
+docker compose -f docker-compose.hostnet.yml ps
+docker compose -f docker-compose.hostnet.yml logs --tail=200 chesstracker2-app
+docker compose -f docker-compose.hostnet.yml logs --tail=200 chesstracker2-db
 
-```bash
-docker compose down -v
-```
-
-Das Datenbank-Volume wird geloescht. Das ist gefaehrlich und darf nur bewusst gemacht werden.
-
-## 10.13 Fehlerdiagnose
-
-```bash
-docker compose ps
-docker compose logs chesstracker2-app
-docker compose logs chesstracker2-db
-docker compose exec chesstracker2-db pg_isready -U chesstracker2 -d chesstracker2
-docker compose exec chesstracker2-db psql -U chesstracker2 -d chesstracker2
 curl -I http://127.0.0.1:8080/today
-sudo nginx -t
-sudo journalctl -u chesstracker2 -n 100 --no-pager
+curl -I https://chesstracker2.litux.de/today
+
+ss -tulpen | grep -E ':8080|:15432'
+ufw status numbered
+nginx -t
+journalctl -u chesstracker2 -n 100 --no-pager
 ```
 
-Typische Fehler:
+Docker-Bridge-Problem pruefen:
 
-- App startet vor DB: Compose wartet auf den DB-Healthcheck, aber bei langsamen Servern koennen Logs helfen.
-- Falsches Datenbankpasswort: `POSTGRES_PASSWORD` und `SPRING_DATASOURCE_PASSWORD` muessen zusammenpassen.
-- Port 8080 bereits belegt: `APP_PORT` in `.env` aendern und nginx auf den neuen lokalen Port zeigen lassen.
-- nginx `server_name` falsch: Domain in `deploy/nginx-chesstracker2.conf` anpassen.
-- `.env` fehlt: `.env.example` kopieren und Werte setzen.
-- Volume versehentlich geloescht: Backup einspielen, wenn `docker compose down -v` ausgefuehrt wurde.
+```bash
+docker run --rm alpine:3.20 ping -c 2 1.1.1.1
+docker run --rm alpine:3.20 nslookup repo.maven.apache.org
+docker run --rm --network chesstracker2_default alpine:3.20 nc -vz chesstracker2-db 5432
+```
 
-## 10.14 Deinstallation
+Erwartung auf dem Zielserver bisher:
+
+```text
+Diese Tests koennen wegen Bridge-/Outbound-Problem fehlschlagen. Fuer chesstracker2 wird deshalb aktuell docker-compose.hostnet.yml verwendet.
+```
+
+## 15. Dokumentiertes Installationsergebnis
+
+Siehe:
+
+```text
+docs/TARGET_DEPLOYMENT_NOTES.md
+```
+
+Kurzstand laut Nutzer-Validierung am 2026-06-08:
+
+- `chesstracker2-app` healthy
+- `chesstracker2-db` healthy
+- Flyway `V001` und `V002` erfolgreich angewendet
+- HTTPS unter `https://chesstracker2.litux.de/today` funktioniert
+- Hostnet-Workaround aktiv, weil Docker-Bridge-Netz auf dem Zielserver nicht nutzbar ist
+
+## 16. Deinstallation
 
 Container stoppen, Daten behalten:
 
 ```bash
-docker compose down
+docker compose -f docker-compose.hostnet.yml down
 ```
 
 Alles inklusive Daten loeschen:
 
 ```bash
-docker compose down -v
+docker compose -f docker-compose.hostnet.yml down -v
 ```
+
+Das Datenbank-Volume wird dabei geloescht. Das ist gefaehrlich und darf nur bewusst gemacht werden.
 
 systemd-Service entfernen:
 

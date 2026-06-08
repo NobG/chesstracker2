@@ -1,6 +1,6 @@
 # chesstracker2
 
-Privates Webtool zum Tracken des taeglichen Aimchess-Trainings. Der MVP fokussiert Tagesdashboard, Trainingseintraege, Tagesauswertung, Copy-Block fuer ChatGPT sowie einfache Wochen-, Monats- und Kategorie-Statistiken.
+Privates Webtool zum Tracken des taeglichen Aimchess-Trainings. Der technische Projektname ist durchgehend `chesstracker2`. Der MVP fokussiert Tagesdashboard, Trainingseintraege, Tagesauswertung, Copy-Block fuer ChatGPT sowie einfache Wochen-, Monats- und Kategorie-Statistiken.
 
 ## Technologie
 
@@ -14,7 +14,7 @@ Privates Webtool zum Tracken des taeglichen Aimchess-Trainings. Der MVP fokussie
 
 ## Docker-Schnellstart
 
-Der empfohlene Betrieb ist Docker Compose. Die Spring-Boot-App laeuft im Container `chesstracker2-app`, PostgreSQL im Container `chesstracker2-db`. Daten liegen dauerhaft im Docker Volume `chesstracker2_pgdata`. nginx kann optional auf dem Host laufen und auf `127.0.0.1:8080` weiterleiten.
+Der Standardbetrieb fuer normale Docker-Hosts ist Docker Compose mit Bridge-Netz. Die Spring-Boot-App laeuft im Container `chesstracker2-app`, PostgreSQL im Container `chesstracker2-db`. Daten liegen dauerhaft im Docker Volume `chesstracker2_pgdata`. nginx kann optional auf dem Host laufen und auf `127.0.0.1:8080` weiterleiten.
 
 ```bash
 cp .env.example .env
@@ -25,10 +25,35 @@ docker compose logs -f chesstracker2-app
 
 Wichtig: `POSTGRES_PASSWORD` und `SPRING_DATASOURCE_PASSWORD` muessen identisch sein, solange derselbe Datenbanknutzer verwendet wird.
 
+## Zielserverbetrieb
+
+Der aktuell validierte Zielserverbetrieb fuer `chesstracker2.litux.de` nutzt `docker-compose.hostnet.yml`:
+
+```bash
+docker compose -f docker-compose.hostnet.yml up -d
+docker compose -f docker-compose.hostnet.yml ps
+```
+
+Grund: Auf dem Zielserver ist das Docker-Bridge-Routing laut manueller Nutzer-Validierung defekt oder blockiert. Die App konnte die DB im Bridge-Netz nicht erreichen und brach mit `NoRouteToHostException` ab. Codex hat den Zielserver nicht selbst geprueft.
+
+nginx laeuft auf dem Host und leitet weiter:
+
+```text
+chesstracker2.litux.de -> http://127.0.0.1:8080
+```
+
+PostgreSQL laeuft im Hostnet-Workaround auf `127.0.0.1:15432`. Die Ports `8080` und `15432` duerfen nicht oeffentlich freigegeben werden.
+
 Ausfuehrliche Ubuntu-Anleitung:
 
 ```text
 docs/INSTALL_UBUNTU_DOCKER.md
+```
+
+Zielserver-Notizen:
+
+```text
+docs/TARGET_DEPLOYMENT_NOTES.md
 ```
 
 ## Lokale Entwicklung ohne Docker-App
@@ -105,17 +130,46 @@ Das Artefakt liegt danach unter `target/chesstracker2-0.1.0-SNAPSHOT.jar`.
 Beispiele liegen in `deploy/`:
 
 - `chesstracker2-docker.service`
+- `chesstracker2-hostnet.service`
 - `chesstracker2-java.service.example`
 - `nginx-chesstracker2.conf`
 - `env.example`
 
-Docker Compose ist die empfohlene Betriebsart. Die vollstaendige Schritt-fuer-Schritt-Anleitung liegt in:
+`chesstracker2-docker.service` ist die Standard-Bridge-Variante. Fuer den aktuellen Zielserver wird `chesstracker2-hostnet.service` empfohlen, weil dort `docker-compose.hostnet.yml` verwendet werden muss.
+
+Die vollstaendige Schritt-fuer-Schritt-Anleitung liegt in:
 
 ```text
 docs/INSTALL_UBUNTU_DOCKER.md
 ```
 
 nginx leitet auf den lokalen Spring-Boot-Port weiter. Siehe `deploy/nginx-chesstracker2.conf`.
+
+## Backup und Update im Hostnet-Betrieb
+
+Backup:
+
+```bash
+cd /opt/chesstracker2
+mkdir -p backups
+
+docker compose -f docker-compose.hostnet.yml exec -T chesstracker2-db \
+  pg_dump -h 127.0.0.1 -p 15432 -U chesstracker2 -d chesstracker2 \
+  > backups/chesstracker2_$(date +%F_%H-%M-%S).sql
+```
+
+Update:
+
+```bash
+cd /opt/chesstracker2
+git pull
+docker build --network=host -t chesstracker2-chesstracker2-app .
+docker compose -f docker-compose.hostnet.yml up -d
+docker compose -f docker-compose.hostnet.yml ps
+curl -I https://chesstracker2.litux.de/today
+```
+
+Der Build nutzt auf dem Zielserver aktuell `--network=host`, weil Maven im normalen Docker-Build-Netz keine externen Repositories erreichen konnte.
 
 ## Smoke-Test
 
@@ -134,6 +188,15 @@ Docker-Smoke-Test:
 ```
 
 Dieser Test prueft Compose-Konfiguration, Containerstart, HTTP-Endpunkte und PostgreSQL-Bereitschaft. Er wurde nicht auf dem Ubuntu-Zielserver durch Codex ausgefuehrt.
+
+Hostnet-Smoke-Test:
+
+```bash
+BASE_URL=http://127.0.0.1:8080 ./scripts/smoke-test-hostnet.sh
+PUBLIC_BASE_URL=https://chesstracker2.litux.de ./scripts/smoke-test-hostnet.sh
+```
+
+Dieser Test erwartet einen laufenden Hostnet-Compose-Stack und prueft die lokalen Kernrouten. Die oeffentliche URL wird nur geprueft, wenn `PUBLIC_BASE_URL` gesetzt ist.
 
 ## Projektplanung
 

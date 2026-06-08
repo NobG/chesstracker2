@@ -1,0 +1,15 @@
+[Unit]
+Description=chesstracker2 Docker Compose service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/chesstracker2
+RemainAfterExit=yes
+ExecStart=/usr/bin/docker compose -f docker-compose.hostnet.yml up -d
+ExecStop=/usr/bin/docker compose -f docker-compose.hostnet.yml down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

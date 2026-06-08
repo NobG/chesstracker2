@@ -22,3 +22,4 @@
 - Optional TLS-Automatisierung fuer nginx/certbot dokumentieren
 - Restore-Prozess auf Staging-System testen
 - Docker-Image-Publishing ueber GitHub Actions pruefen
+- Docker-Bridge-Routing auf Zielserver sauber reparieren und danach von hostnet zurueck auf normales Compose pruefen.
