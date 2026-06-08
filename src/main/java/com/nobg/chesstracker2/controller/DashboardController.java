@@ -2,6 +2,7 @@ package com.nobg.chesstracker2.controller;
 
 import com.nobg.chesstracker2.dto.TrainingDayForm;
 import com.nobg.chesstracker2.service.AppDateProvider;
+import com.nobg.chesstracker2.service.RatingSnapshotService;
 import com.nobg.chesstracker2.service.StatsService;
 import com.nobg.chesstracker2.service.TrainingEntryService;
 import java.time.LocalDate;
@@ -20,15 +21,18 @@ public class DashboardController {
     private final TrainingEntryService trainingEntryService;
     private final StatsService statsService;
     private final AppDateProvider appDateProvider;
+    private final RatingSnapshotService ratingSnapshotService;
 
     public DashboardController(
             TrainingEntryService trainingEntryService,
             StatsService statsService,
-            AppDateProvider appDateProvider
+            AppDateProvider appDateProvider,
+            RatingSnapshotService ratingSnapshotService
     ) {
         this.trainingEntryService = trainingEntryService;
         this.statsService = statsService;
         this.appDateProvider = appDateProvider;
+        this.ratingSnapshotService = ratingSnapshotService;
     }
 
     @GetMapping("/")
@@ -44,6 +48,7 @@ public class DashboardController {
         model.addAttribute("completeAction", "/today/complete");
         model.addAttribute("view", view);
         model.addAttribute("form", view.form());
+        model.addAttribute("ratingSummary", ratingSnapshotService.latestRatingSummary());
         return "today";
     }
 

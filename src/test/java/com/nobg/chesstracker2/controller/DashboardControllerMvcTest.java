@@ -10,9 +10,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.nobg.chesstracker2.model.DailyTrainingEntry;
 import com.nobg.chesstracker2.model.DailyCompletionStatus;
 import com.nobg.chesstracker2.model.TrainingCategory;
+import com.nobg.chesstracker2.model.RatingSnapshot;
 import com.nobg.chesstracker2.repository.DailyNoteRepository;
 import com.nobg.chesstracker2.repository.DailyTrainingEntryRepository;
 import com.nobg.chesstracker2.repository.MotivationQuoteRepository;
+import com.nobg.chesstracker2.repository.RatingSnapshotRepository;
 import com.nobg.chesstracker2.repository.TrainingCategoryRepository;
 import com.nobg.chesstracker2.service.AppDateProvider;
 import com.nobg.chesstracker2.service.MotivationQuoteService;
@@ -82,6 +84,9 @@ class DashboardControllerMvcTest {
     private MotivationQuoteRepository quoteRepository;
 
     @Autowired
+    private RatingSnapshotRepository ratingSnapshotRepository;
+
+    @Autowired
     private MotivationQuoteService quoteService;
 
     @MockBean
@@ -95,6 +100,7 @@ class DashboardControllerMvcTest {
         when(appDateProvider.currentIsoWeek()).thenReturn(24);
         entryRepository.deleteAll();
         noteRepository.deleteAll();
+        ratingSnapshotRepository.deleteAll();
     }
 
     @Test
@@ -183,6 +189,47 @@ class DashboardControllerMvcTest {
                 "class=\"beta-badge\"",
                 "Beta"
         );
+    }
+
+    @Test
+    void todayShowsEmptyRatingSummaryWhenNoSnapshotExists() throws Exception {
+        MvcResult result = mockMvc.perform(get("/today"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(
+                "Aktuelle Ratings",
+                "Noch keine Ratings erfasst.",
+                "Rating eintragen",
+                "href=\"/rating\""
+        );
+        assertThat(html).doesNotContain(">null<");
+    }
+
+    @Test
+    void todayShowsLatestRatingSummaryWithoutNullValues() throws Exception {
+        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 6, 1), 1700, 1650, 1600, 1400, 1500));
+        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 6, 8), 1850, 1780, null, 1450, null));
+
+        MvcResult result = mockMvc.perform(get("/today"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(
+                "Aktuelle Ratings",
+                "Blitz",
+                "1850",
+                "Rapid",
+                "1780",
+                "Classical",
+                "DWZ",
+                "1450",
+                "FIDE"
+        );
+        assertThat(html)
+                .doesNotContain("1700", "1650", "1600", "1500", ">null<", "Noch keine Ratings erfasst.");
     }
 
     @Test
@@ -361,5 +408,23 @@ class DashboardControllerMvcTest {
                 .filter(category -> "Tactics".equals(category.getName()))
                 .findFirst()
                 .orElseThrow();
+    }
+
+    private RatingSnapshot snapshot(
+            LocalDate date,
+            Integer blitz,
+            Integer rapid,
+            Integer classical,
+            Integer dwz,
+            Integer fide
+    ) {
+        RatingSnapshot snapshot = new RatingSnapshot();
+        snapshot.setSnapshotDate(date);
+        snapshot.setLichessBlitz(blitz);
+        snapshot.setLichessRapid(rapid);
+        snapshot.setLichessClassical(classical);
+        snapshot.setDwz(dwz);
+        snapshot.setFideElo(fide);
+        return snapshot;
     }
 }

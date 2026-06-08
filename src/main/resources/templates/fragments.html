@@ -116,13 +116,44 @@
                 <p>Aimchess Training, Rating und Schachentwicklung</p>
             </div>
         </div>
-        <aside class="weekly-quote">
-            <p class="weekly-quote-label">Wochenspruch</p>
-            <blockquote>
-                <p class="weekly-quote-text" th:text="${weeklyQuote.quoteText()}">Jeder Trainingstag ist ein Zug in Richtung besseres Schach.</p>
-                <footer class="weekly-quote-author" th:text="'- ' + ${weeklyQuote.author()}">- chesstracker2</footer>
-            </blockquote>
-        </aside>
+        <div class="hero-side">
+            <section class="rating-strip" th:if="${ratingSummary != null}">
+                <div class="rating-strip__head">
+                    <p class="rating-strip__title">Aktuelle Ratings</p>
+                    <a class="rating-strip__link" href="/rating">Rating eintragen</a>
+                </div>
+                <div class="rating-strip__grid" th:if="${ratingSummary.hasAnyRating()}">
+                    <div class="rating-strip__item">
+                        <span class="rating-strip__label">Blitz</span>
+                        <strong class="rating-strip__value" th:text="${ratingSummary.lichessBlitz() == null ? '-' : ratingSummary.lichessBlitz()}">1850</strong>
+                    </div>
+                    <div class="rating-strip__item">
+                        <span class="rating-strip__label">Rapid</span>
+                        <strong class="rating-strip__value" th:text="${ratingSummary.lichessRapid() == null ? '-' : ratingSummary.lichessRapid()}">1780</strong>
+                    </div>
+                    <div class="rating-strip__item">
+                        <span class="rating-strip__label">Classical</span>
+                        <strong class="rating-strip__value" th:text="${ratingSummary.lichessClassical() == null ? '-' : ratingSummary.lichessClassical()}">-</strong>
+                    </div>
+                    <div class="rating-strip__item">
+                        <span class="rating-strip__label">DWZ</span>
+                        <strong class="rating-strip__value" th:text="${ratingSummary.dwz() == null ? '-' : ratingSummary.dwz()}">1450</strong>
+                    </div>
+                    <div class="rating-strip__item">
+                        <span class="rating-strip__label">FIDE</span>
+                        <strong class="rating-strip__value" th:text="${ratingSummary.fideElo() == null ? '-' : ratingSummary.fideElo()}">-</strong>
+                    </div>
+                </div>
+                <p class="rating-strip__empty" th:if="${!ratingSummary.hasAnyRating()}">Noch keine Ratings erfasst.</p>
+            </section>
+            <aside class="weekly-quote">
+                <p class="weekly-quote-label">Wochenspruch</p>
+                <blockquote>
+                    <p class="weekly-quote-text" th:text="${weeklyQuote.quoteText()}">Jeder Trainingstag ist ein Zug in Richtung besseres Schach.</p>
+                    <footer class="weekly-quote-author" th:text="'- ' + ${weeklyQuote.author()}">- chesstracker2</footer>
+                </blockquote>
+            </aside>
+        </div>
     </section>
 </header>
 </body>

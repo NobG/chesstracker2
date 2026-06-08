@@ -209,6 +209,73 @@ a {
     margin-top: 10px;
 }
 
+.hero-side {
+    display: grid;
+    gap: 12px;
+}
+
+.rating-strip {
+    background: rgba(16, 19, 21, 0.58);
+    border: 1px solid rgba(96, 199, 168, 0.28);
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.rating-strip__head {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.rating-strip__title {
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 800;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.rating-strip__link {
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.rating-strip__link:hover {
+    color: var(--text);
+}
+
+.rating-strip__grid {
+    display: grid;
+    gap: 7px 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rating-strip__item {
+    align-items: baseline;
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+    min-width: 0;
+}
+
+.rating-strip__label {
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.rating-strip__value {
+    color: var(--text);
+    font-size: 1rem;
+}
+
+.rating-strip__empty {
+    color: var(--muted);
+    margin: 0;
+}
+
 .shell {
     margin: 0 auto;
     max-width: 1280px;
@@ -639,6 +706,10 @@ th {
         grid-template-columns: 1fr;
     }
 
+    .rating-strip__grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .metric-grid,
     .entry-grid,
     .two-column {
@@ -658,6 +729,10 @@ th {
     .app-brand {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .rating-strip__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -752,6 +827,21 @@ body {
     border-color: rgba(214, 167, 86, 0.30);
     border-radius: 12px;
     box-shadow: inset 0 1px 0 rgba(242, 234, 220, 0.04);
+}
+
+.rating-strip {
+    background: linear-gradient(145deg, rgba(17, 16, 13, 0.78), rgba(42, 37, 29, 0.64));
+    border-color: rgba(127, 159, 110, 0.34);
+    border-radius: 12px;
+    box-shadow: inset 0 1px 0 rgba(242, 234, 220, 0.04);
+}
+
+.rating-strip__title {
+    color: var(--green-strong);
+}
+
+.rating-strip__link:hover {
+    color: var(--accent-strong);
 }
 
 .metric-card,

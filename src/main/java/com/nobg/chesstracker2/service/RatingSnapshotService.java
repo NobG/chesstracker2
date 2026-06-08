@@ -4,6 +4,7 @@ import com.nobg.chesstracker2.dto.RatingSnapshotForm;
 import com.nobg.chesstracker2.model.RatingSnapshot;
 import com.nobg.chesstracker2.repository.RatingSnapshotRepository;
 import com.nobg.chesstracker2.viewmodel.RatingChangeViewModel;
+import com.nobg.chesstracker2.viewmodel.RatingSummaryViewModel;
 import com.nobg.chesstracker2.viewmodel.RatingSnapshotRowViewModel;
 import com.nobg.chesstracker2.viewmodel.RatingSnapshotViewModel;
 import java.time.LocalDate;
@@ -29,6 +30,14 @@ public class RatingSnapshotService {
                 snapshots.stream().map(this::toRow).toList(),
                 changes(snapshots)
         );
+    }
+
+    @Transactional(readOnly = true)
+    public RatingSummaryViewModel latestRatingSummary() {
+        return repository.findAllByOrderBySnapshotDateDesc().stream()
+                .findFirst()
+                .map(this::toSummary)
+                .orElseGet(() -> new RatingSummaryViewModel(null, null, null, null, null, null, false));
     }
 
     @Transactional
@@ -95,6 +104,23 @@ public class RatingSnapshotService {
                 snapshot.getDwz(),
                 snapshot.getFideElo(),
                 snapshot.getNote()
+        );
+    }
+
+    private RatingSummaryViewModel toSummary(RatingSnapshot snapshot) {
+        boolean hasAnyRating = snapshot.getLichessBlitz() != null
+                || snapshot.getLichessRapid() != null
+                || snapshot.getLichessClassical() != null
+                || snapshot.getDwz() != null
+                || snapshot.getFideElo() != null;
+        return new RatingSummaryViewModel(
+                snapshot.getSnapshotDate(),
+                snapshot.getLichessBlitz(),
+                snapshot.getLichessRapid(),
+                snapshot.getLichessClassical(),
+                snapshot.getDwz(),
+                snapshot.getFideElo(),
+                hasAnyRating
         );
     }
 

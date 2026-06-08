@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import com.nobg.chesstracker2.dto.RatingSnapshotForm;
 import com.nobg.chesstracker2.model.RatingSnapshot;
 import com.nobg.chesstracker2.repository.RatingSnapshotRepository;
+import com.nobg.chesstracker2.viewmodel.RatingSummaryViewModel;
 import com.nobg.chesstracker2.viewmodel.RatingSnapshotViewModel;
 import java.time.LocalDate;
 import java.util.List;
@@ -64,6 +65,31 @@ class RatingSnapshotServiceTest {
                         org.assertj.core.groups.Tuple.tuple("Lichess Blitz", "+25"),
                         org.assertj.core.groups.Tuple.tuple("DWZ", "+18")
                 );
+    }
+
+    @Test
+    void latestRatingSummaryUsesNewestSnapshotAndMarksExistingRatings() {
+        RatingSnapshot older = snapshot(LocalDate.of(2026, 6, 1), 1800, 1900, null, 1700, null, null);
+        RatingSnapshot latest = snapshot(LocalDate.of(2026, 6, 8), 1825, null, null, 1718, null, null);
+        when(repository.findAllByOrderBySnapshotDateDesc()).thenReturn(List.of(latest, older));
+
+        RatingSummaryViewModel summary = service.latestRatingSummary();
+
+        assertThat(summary.snapshotDate()).isEqualTo(LocalDate.of(2026, 6, 8));
+        assertThat(summary.lichessBlitz()).isEqualTo(1825);
+        assertThat(summary.lichessRapid()).isNull();
+        assertThat(summary.dwz()).isEqualTo(1718);
+        assertThat(summary.hasAnyRating()).isTrue();
+    }
+
+    @Test
+    void latestRatingSummaryHandlesMissingSnapshots() {
+        when(repository.findAllByOrderBySnapshotDateDesc()).thenReturn(List.of());
+
+        RatingSummaryViewModel summary = service.latestRatingSummary();
+
+        assertThat(summary.snapshotDate()).isNull();
+        assertThat(summary.hasAnyRating()).isFalse();
     }
 
     @Test
