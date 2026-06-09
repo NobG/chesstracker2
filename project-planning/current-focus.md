@@ -7,9 +7,9 @@ Der chesstracker2-MVP ist abgeschlossen und als Version v1.0.0 markiert. Die Anw
 ## Aktueller Fokus
 
 1. MVP stabil betreiben
-2. Backup-/Restore-Prozess absichern
-3. Zielserver-Deployment weiter validieren
-4. Danach Version-2-Erweiterungen planen
+2. Zielserver-Deployment weiter validieren
+3. Version-2-Erweiterungen planen
+4. Backup-/Restore-Prozess regelmaessig wiederholen/automatisieren
 
 ## Technische Zielnamen
 
@@ -45,6 +45,18 @@ Der chesstracker2-MVP ist abgeschlossen und als Version v1.0.0 markiert. Die Anw
 ## MVP-Abschluss v1.0.0
 
 Der MVP ist fachlich abgeschlossen. Weitere Ideen wie automatische Rating-Quellen, chess-results, Turniermodul, Partienlog, CSV-Export, Kalenderansicht und verbesserte Tagesbewertung bleiben im Backlog fuer spaetere Versionen.
+
+## Backup-/Restore-Validierung
+
+Am 2026-06-09 wurde der Backup-/Restore-Prozess auf dem Zielserver erfolgreich getestet.
+
+Vorgehen:
+- Backup der Produktivdatenbank per `pg_dump -Fc`
+- Restore in separate Testdatenbank `chesstracker2_restore_test`
+- Vergleich der wichtigsten Tabellen-Counts zwischen Produktiv- und Restore-Testdatenbank
+
+Ergebnis:
+Der Restore war erfolgreich. Die geprueften Tabellen hatten identische Datensaetze.
 
 ## Hinweis
 
