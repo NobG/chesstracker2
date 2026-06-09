@@ -133,7 +133,14 @@ class DashboardControllerMvcTest {
                         "id=\"icon-category-target\"",
                         "href=\"#icon-category-target\"",
                         "class=\"training-form\"",
-                        "class=\"entry-card\""
+                        "class=\"entry-card\"",
+                        "data-training-plan-grid",
+                        "data-training-date=\"2026-06-09\"",
+                        "data-category-id=\"",
+                        "data-original-index=\"0\"",
+                        "class=\"plan-training-button\"",
+                        "Heute einplanen",
+                        "class=\"plan-training-badge\""
                 )
                 .doesNotContain(
                         "name=\"form.entries[0].categoryId\"",
@@ -142,6 +149,35 @@ class DashboardControllerMvcTest {
                         "name=\"form.completionStatus\"",
                         "name=\"completionStatus\""
                 );
+    }
+
+    @Test
+    void todayIncludesDateScopedPlanningScriptWithoutChangingFieldNames() throws Exception {
+        MvcResult result = mockMvc.perform(get("/today"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(
+                "chesstracker2.trainingPlan.${trainingPlanGrid.dataset.trainingDate}",
+                "localStorage.getItem(key)",
+                "localStorage.setItem(key, JSON.stringify(plan))",
+                "trainingPlanGrid.appendChild(card)",
+                "querySelectorAll('.entry-card')",
+                "card.classList.toggle('is-planned-today', planned)",
+                "Geplant #${index + 1}"
+        );
+        assertThat(html)
+                .contains(
+                        "name=\"entries[0].categoryId\"",
+                        "name=\"entries[0].trained\"",
+                        "name=\"entries[0].result\"",
+                        "name=\"entries[0].score\"",
+                        "name=\"entries[0].durationMinutes\"",
+                        "name=\"entries[0].note\"",
+                        "name=\"dayNote\""
+                )
+                .doesNotContain("name=\"form.entries", "name=\"form.dayNote\"");
     }
 
     @Test

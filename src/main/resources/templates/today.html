@@ -37,9 +37,10 @@
     </section>
 
     <form id="training-form" class="training-form" method="post" th:action="${saveAction}" th:object="${form}">
-        <section class="entry-grid">
+        <section class="entry-grid" data-training-plan-grid th:attr="data-training-date=${view.date}">
             <article class="entry-card" th:classappend="${entry.workedToday()} ? ' is-worked-today'"
-                     th:each="formEntry, stat : ${view.form.entries}" th:with="entry=${view.entries[stat.index]}">
+                     th:each="formEntry, stat : ${view.form.entries}" th:with="entry=${view.entries[stat.index]}"
+                     th:attr="data-category-id=${entry.categoryId()},data-original-index=${stat.index}">
                 <input type="hidden" th:field="*{entries[__${stat.index}__].categoryId}">
                 <div class="entry-card__head">
                     <div>
@@ -50,13 +51,17 @@
                             <span th:text="${entry.categoryName()}">Tactics</span>
                             <span class="beta-badge" th:if="${entry.beta()}">Beta</span>
                             <span class="entry-badge" th:if="${entry.workedToday()}">Heute bearbeitet</span>
+                            <span class="plan-training-badge" hidden>Geplant #1</span>
                         </h2>
                         <p th:text="${entry.description()}">Beschreibung</p>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" th:field="*{entries[__${stat.index}__].trained}" th:disabled="${view.summary.locked()}">
-                        <span>Trainiert</span>
-                    </label>
+                    <div class="entry-card__actions">
+                        <button class="plan-training-button" type="button">Heute einplanen</button>
+                        <label class="switch">
+                            <input type="checkbox" th:field="*{entries[__${stat.index}__].trained}" th:disabled="${view.summary.locked()}">
+                            <span>Trainiert</span>
+                        </label>
+                    </div>
                 </div>
                 <div class="field-row">
                     <label>Ergebnis
@@ -135,6 +140,115 @@ document.querySelectorAll('[data-copy-target]').forEach((button) => {
 const completeDialog = document.querySelector('[data-complete-dialog]');
 const completeSummary = document.querySelector('[data-complete-summary]');
 const trainingForm = document.getElementById('training-form');
+const trainingPlanGrid = document.querySelector('[data-training-plan-grid]');
+
+function trainingPlanStorageKey() {
+    return trainingPlanGrid?.dataset.trainingDate
+        ? `chesstracker2.trainingPlan.${trainingPlanGrid.dataset.trainingDate}`
+        : null;
+}
+
+function readTrainingPlan() {
+    const key = trainingPlanStorageKey();
+    if (!key) {
+        return [];
+    }
+    try {
+        const value = JSON.parse(localStorage.getItem(key) || '[]');
+        return Array.isArray(value) ? value.map(String) : [];
+    } catch {
+        return [];
+    }
+}
+
+function writeTrainingPlan(plan) {
+    const key = trainingPlanStorageKey();
+    if (!key) {
+        return;
+    }
+    localStorage.setItem(key, JSON.stringify(plan));
+}
+
+function sortTrainingCards(plan) {
+    if (!trainingPlanGrid) {
+        return;
+    }
+    const plannedIndex = new Map(plan.map((categoryId, index) => [categoryId, index]));
+    const cards = Array.from(trainingPlanGrid.querySelectorAll('.entry-card'));
+    cards.sort((left, right) => {
+        const leftPlanIndex = plannedIndex.get(left.dataset.categoryId);
+        const rightPlanIndex = plannedIndex.get(right.dataset.categoryId);
+        const leftPlanned = leftPlanIndex !== undefined;
+        const rightPlanned = rightPlanIndex !== undefined;
+        if (leftPlanned || rightPlanned) {
+            if (leftPlanned && rightPlanned) {
+                return leftPlanIndex - rightPlanIndex;
+            }
+            return leftPlanned ? -1 : 1;
+        }
+        const leftWorked = left.classList.contains('is-worked-today');
+        const rightWorked = right.classList.contains('is-worked-today');
+        if (leftWorked !== rightWorked) {
+            return leftWorked ? -1 : 1;
+        }
+        return Number(left.dataset.originalIndex) - Number(right.dataset.originalIndex);
+    });
+    cards.forEach((card) => trainingPlanGrid.appendChild(card));
+}
+
+function renderTrainingPlan(plan) {
+    if (!trainingPlanGrid) {
+        return;
+    }
+    const plannedIndex = new Map(plan.map((categoryId, index) => [categoryId, index]));
+    trainingPlanGrid.querySelectorAll('.entry-card').forEach((card) => {
+        const index = plannedIndex.get(card.dataset.categoryId);
+        const planned = index !== undefined;
+        const label = planned ? `Geplant #${index + 1}` : 'Heute einplanen';
+        card.classList.toggle('is-planned-today', planned);
+        const button = card.querySelector('.plan-training-button');
+        if (button) {
+            button.textContent = label;
+            button.setAttribute('aria-pressed', planned ? 'true' : 'false');
+        }
+        const badge = card.querySelector('.plan-training-badge');
+        if (badge) {
+            badge.textContent = label;
+            badge.hidden = !planned;
+        }
+    });
+}
+
+function applyTrainingPlan(plan) {
+    sortTrainingCards(plan);
+    renderTrainingPlan(plan);
+}
+
+function initializeTrainingPlan() {
+    if (!trainingPlanGrid) {
+        return;
+    }
+    applyTrainingPlan(readTrainingPlan());
+    trainingPlanGrid.addEventListener('click', (event) => {
+        const button = event.target.closest('.plan-training-button');
+        if (!button) {
+            return;
+        }
+        const card = button.closest('.entry-card');
+        if (!card) {
+            return;
+        }
+        const categoryId = card.dataset.categoryId;
+        let plan = readTrainingPlan().filter((item) => item !== categoryId);
+        if (button.getAttribute('aria-pressed') !== 'true') {
+            plan = [...plan, categoryId];
+        }
+        writeTrainingPlan(plan);
+        applyTrainingPlan(plan);
+    });
+}
+
+initializeTrainingPlan();
 
 function fieldValue(card, suffix) {
     const field = card.querySelector(`[name$=".${suffix}"]`);
