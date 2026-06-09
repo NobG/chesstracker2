@@ -1,5 +1,8 @@
 server:
   port: ${SERVER_PORT:8080}
+  forward-headers-strategy: framework
+  tomcat:
+    use-relative-redirects: true
 
 chesstracker2:
   time-zone: Europe/Berlin
