@@ -16,10 +16,6 @@ public class RatingSnapshotForm {
 
     private Integer fideElo;
 
-    private Integer tacticsRating;
-
-    private Integer endgameRating;
-
     private String note;
 
     public LocalDate getSnapshotDate() {
@@ -68,22 +64,6 @@ public class RatingSnapshotForm {
 
     public void setFideElo(Integer fideElo) {
         this.fideElo = fideElo;
-    }
-
-    public Integer getTacticsRating() {
-        return tacticsRating;
-    }
-
-    public void setTacticsRating(Integer tacticsRating) {
-        this.tacticsRating = tacticsRating;
-    }
-
-    public Integer getEndgameRating() {
-        return endgameRating;
-    }
-
-    public void setEndgameRating(Integer endgameRating) {
-        this.endgameRating = endgameRating;
     }
 
     public String getNote() {

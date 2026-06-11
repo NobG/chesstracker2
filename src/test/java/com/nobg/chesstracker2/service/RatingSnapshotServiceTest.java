@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 import com.nobg.chesstracker2.dto.RatingSnapshotForm;
 import com.nobg.chesstracker2.model.RatingSnapshot;
 import com.nobg.chesstracker2.repository.RatingSnapshotRepository;
-import com.nobg.chesstracker2.viewmodel.RatingSummaryViewModel;
 import com.nobg.chesstracker2.viewmodel.RatingSnapshotViewModel;
 import java.time.LocalDate;
 import java.util.List;
@@ -26,7 +25,7 @@ class RatingSnapshotServiceTest {
     void saveSnapshotCreatesNewSnapshot() {
         LocalDate date = LocalDate.of(2026, 6, 8);
         when(repository.findBySnapshotDate(date)).thenReturn(Optional.empty());
-        RatingSnapshotForm form = form(date, 1800, 1900, null, null, null, 2150, null, "Start");
+        RatingSnapshotForm form = form(date, 1800, 1900, null, null, null, "Start");
 
         service.saveSnapshot(form);
 
@@ -35,30 +34,27 @@ class RatingSnapshotServiceTest {
         assertThat(captor.getValue().getSnapshotDate()).isEqualTo(date);
         assertThat(captor.getValue().getLichessBlitz()).isEqualTo(1800);
         assertThat(captor.getValue().getLichessRapid()).isEqualTo(1900);
-        assertThat(captor.getValue().getTacticsRating()).isEqualTo(2150);
-        assertThat(captor.getValue().getEndgameRating()).isNull();
         assertThat(captor.getValue().getNote()).isEqualTo("Start");
     }
 
     @Test
     void saveSnapshotUpdatesExistingSnapshotForSameDate() {
         LocalDate date = LocalDate.of(2026, 6, 8);
-        RatingSnapshot existing = snapshot(date, 1800, null, null, null, null, null, null, null);
+        RatingSnapshot existing = snapshot(date, 1800, null, null, null, null, null);
         when(repository.findBySnapshotDate(date)).thenReturn(Optional.of(existing));
 
-        service.saveSnapshot(form(date, 1850, null, null, 1700, null, null, 1550, "Update"));
+        service.saveSnapshot(form(date, 1850, null, null, 1700, null, "Update"));
 
         verify(repository).save(existing);
         assertThat(existing.getLichessBlitz()).isEqualTo(1850);
         assertThat(existing.getDwz()).isEqualTo(1700);
-        assertThat(existing.getEndgameRating()).isEqualTo(1550);
         assertThat(existing.getNote()).isEqualTo("Update");
     }
 
     @Test
     void ratingViewCalculatesChangesAndIgnoresMissingValues() {
-        RatingSnapshot current = snapshot(LocalDate.of(2026, 6, 8), 1825, null, null, 1718, null, 2200, 1510, null);
-        RatingSnapshot previous = snapshot(LocalDate.of(2026, 6, 1), 1800, 1900, null, 1700, null, 2150, null, null);
+        RatingSnapshot current = snapshot(LocalDate.of(2026, 6, 8), 1825, null, null, 1718, null, null);
+        RatingSnapshot previous = snapshot(LocalDate.of(2026, 6, 1), 1800, 1900, null, 1700, null, null);
         when(repository.findAllByOrderBySnapshotDateDesc()).thenReturn(List.of(current, previous));
 
         RatingSnapshotViewModel view = service.ratingView();
@@ -66,52 +62,24 @@ class RatingSnapshotServiceTest {
         assertThat(view.changes()).extracting("label", "displayDifference")
                 .containsExactly(
                         org.assertj.core.groups.Tuple.tuple("Lichess Blitz", "+25"),
-                        org.assertj.core.groups.Tuple.tuple("DWZ", "+18"),
-                        org.assertj.core.groups.Tuple.tuple("Taktik", "+50")
+                        org.assertj.core.groups.Tuple.tuple("DWZ", "+18")
                 );
-    }
-
-    @Test
-    void latestRatingSummaryUsesNewestSnapshotAndMarksExistingRatings() {
-        RatingSnapshot older = snapshot(LocalDate.of(2026, 6, 1), 1800, 1900, null, 1700, null, null, null, null);
-        RatingSnapshot latest = snapshot(LocalDate.of(2026, 6, 8), 1825, null, null, 1718, null, 2200, null, null);
-        when(repository.findAllByOrderBySnapshotDateDesc()).thenReturn(List.of(latest, older));
-
-        RatingSummaryViewModel summary = service.latestRatingSummary();
-
-        assertThat(summary.snapshotDate()).isEqualTo(LocalDate.of(2026, 6, 8));
-        assertThat(summary.lichessBlitz()).isEqualTo(1825);
-        assertThat(summary.lichessRapid()).isNull();
-        assertThat(summary.dwz()).isEqualTo(1718);
-        assertThat(summary.tacticsRating()).isEqualTo(2200);
-        assertThat(summary.endgameRating()).isNull();
-        assertThat(summary.hasAnyRating()).isTrue();
-    }
-
-    @Test
-    void latestRatingSummaryHandlesMissingSnapshots() {
-        when(repository.findAllByOrderBySnapshotDateDesc()).thenReturn(List.of());
-
-        RatingSummaryViewModel summary = service.latestRatingSummary();
-
-        assertThat(summary.snapshotDate()).isNull();
-        assertThat(summary.hasAnyRating()).isFalse();
     }
 
     @Test
     void saveSnapshotRejectsNegativeRatingsAndAllowsEmptyOptionalFields() {
         LocalDate date = LocalDate.of(2026, 6, 8);
-        RatingSnapshotForm empty = form(date, null, null, null, null, null, null, null, "");
+        RatingSnapshotForm empty = form(date, null, null, null, null, null, "");
         when(repository.findBySnapshotDate(date)).thenReturn(Optional.empty());
 
         service.saveSnapshot(empty);
 
         verify(repository).save(any(RatingSnapshot.class));
 
-        RatingSnapshotForm negative = form(date, null, null, null, null, null, -1, null, null);
+        RatingSnapshotForm negative = form(date, -1, null, null, null, null, null);
         assertThatThrownBy(() -> service.saveSnapshot(negative))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Taktik");
+                .hasMessageContaining("Lichess Blitz");
     }
 
     private RatingSnapshotForm form(
@@ -121,8 +89,6 @@ class RatingSnapshotServiceTest {
             Integer classical,
             Integer dwz,
             Integer fide,
-            Integer tactics,
-            Integer endgame,
             String note
     ) {
         RatingSnapshotForm form = new RatingSnapshotForm();
@@ -132,8 +98,6 @@ class RatingSnapshotServiceTest {
         form.setLichessClassical(classical);
         form.setDwz(dwz);
         form.setFideElo(fide);
-        form.setTacticsRating(tactics);
-        form.setEndgameRating(endgame);
         form.setNote(note);
         return form;
     }
@@ -145,8 +109,6 @@ class RatingSnapshotServiceTest {
             Integer classical,
             Integer dwz,
             Integer fide,
-            Integer tactics,
-            Integer endgame,
             String note
     ) {
         RatingSnapshot snapshot = new RatingSnapshot();
@@ -156,8 +118,6 @@ class RatingSnapshotServiceTest {
         snapshot.setLichessClassical(classical);
         snapshot.setDwz(dwz);
         snapshot.setFideElo(fide);
-        snapshot.setTacticsRating(tactics);
-        snapshot.setEndgameRating(endgame);
         snapshot.setNote(note);
         return snapshot;
     }

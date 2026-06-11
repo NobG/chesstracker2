@@ -245,8 +245,11 @@ class DashboardControllerMvcTest {
 
     @Test
     void todayShowsLatestRatingSummaryWithoutNullValues() throws Exception {
-        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 6, 1), 1700, 1650, 1600, 1400, 1500, 2100, 1500));
-        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 6, 8), 1850, 1780, null, 1450, null, 2200, null));
+        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 6, 1), 1700, 1650, 1600, 1400, 1500));
+        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 6, 8), 1850, 1780, null, 1450, null));
+        saveScore(LocalDate.of(2026, 6, 6), tactics(), 2100);
+        saveScore(APP_TODAY, tactics(), 2200);
+        saveScore(LocalDate.of(2026, 6, 7), endgame(), 1588);
 
         MvcResult result = mockMvc.perform(get("/today"))
                 .andExpect(status().isOk())
@@ -268,25 +271,16 @@ class DashboardControllerMvcTest {
                 "Training",
                 "Taktik",
                 "2200",
-                "Endspiel"
+                "Endspiel",
+                "1588"
         );
         assertThat(html)
                 .doesNotContain("1700", "1650", "1600", "1500", ">null<", "Noch keine Ratings erfasst.");
     }
 
     @Test
-    void todayShowsTrainingRatingsSavedThroughRatingForm() throws Exception {
-        mockMvc.perform(post("/rating")
-                        .param("snapshotDate", APP_TODAY.toString())
-                        .param("lichessBlitz", "1643")
-                        .param("lichessRapid", "1624")
-                        .param("lichessClassical", "1760")
-                        .param("dwz", "1627")
-                        .param("fideElo", "1670")
-                        .param("tacticsRating", "2215")
-                        .param("endgameRating", "1588"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/rating"));
+    void todayShowsMissingTrainingScoresAsPlaceholders() throws Exception {
+        ratingSnapshotRepository.save(snapshot(APP_TODAY, 1643, 1624, 1760, 1627, 1670));
 
         MvcResult result = mockMvc.perform(get("/today"))
                 .andExpect(status().isOk())
@@ -300,10 +294,38 @@ class DashboardControllerMvcTest {
                 "1670",
                 "Training",
                 "Taktik",
+                "Endspiel"
+        );
+        assertThat(html).containsPattern("Taktik\\s*</span>\\s*<strong class=\"hero-rating-value\">-</strong>");
+        assertThat(html).containsPattern("Endspiel\\s*</span>\\s*<strong class=\"hero-rating-value\">-</strong>");
+        assertThat(html).doesNotContain("2215", "1588", ">null<", "Noch keine Ratings erfasst.");
+    }
+
+    @Test
+    void todayShowsLatestAimchessScoresForTrainingRatings() throws Exception {
+        ratingSnapshotRepository.save(snapshot(APP_TODAY, 1643, 1624, 1760, 1627, 1670));
+        saveScore(LocalDate.of(2026, 6, 5), tactics(), 2100);
+        saveScore(APP_TODAY, tactics(), 2215);
+        saveScore(LocalDate.of(2026, 6, 4), endgame(), 1500);
+        saveScore(LocalDate.of(2026, 6, 8), endgame(), 1588);
+
+        MvcResult result = mockMvc.perform(get("/today"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(
+                "Blitz",
+                "1643",
+                "DWZ",
+                "1627",
+                "Training",
+                "Taktik",
                 "2215",
                 "Endspiel",
                 "1588"
         );
+        assertThat(html).doesNotContain("2100", "1500", ">null<");
     }
 
     @Test
@@ -484,15 +506,28 @@ class DashboardControllerMvcTest {
                 .orElseThrow();
     }
 
+    private TrainingCategory endgame() {
+        return categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc().stream()
+                .filter(category -> "Endgame".equals(category.getName()))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private void saveScore(LocalDate date, TrainingCategory category, Integer score) {
+        DailyTrainingEntry entry = new DailyTrainingEntry();
+        entry.setTrainingDate(date);
+        entry.setCategory(category);
+        entry.setScore(score);
+        entryRepository.saveAndFlush(entry);
+    }
+
     private RatingSnapshot snapshot(
             LocalDate date,
             Integer blitz,
             Integer rapid,
             Integer classical,
             Integer dwz,
-            Integer fide,
-            Integer tactics,
-            Integer endgame
+            Integer fide
     ) {
         RatingSnapshot snapshot = new RatingSnapshot();
         snapshot.setSnapshotDate(date);
@@ -501,8 +536,6 @@ class DashboardControllerMvcTest {
         snapshot.setLichessClassical(classical);
         snapshot.setDwz(dwz);
         snapshot.setFideElo(fide);
-        snapshot.setTacticsRating(tactics);
-        snapshot.setEndgameRating(endgame);
         return snapshot;
     }
 }

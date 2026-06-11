@@ -153,11 +153,11 @@
                         <p class="hero-rating-group-title">Training</p>
                         <div class="hero-rating-row">
                             <span class="hero-rating-label">Taktik</span>
-                            <strong class="hero-rating-value" th:text="${ratingSummary.tacticsRating() == null ? '-' : ratingSummary.tacticsRating()}">-</strong>
+                            <strong class="hero-rating-value" th:text="${ratingSummary.tacticsScore() == null ? '-' : ratingSummary.tacticsScore()}">-</strong>
                         </div>
                         <div class="hero-rating-row">
                             <span class="hero-rating-label">Endspiel</span>
-                            <strong class="hero-rating-value" th:text="${ratingSummary.endgameRating() == null ? '-' : ratingSummary.endgameRating()}">-</strong>
+                            <strong class="hero-rating-value" th:text="${ratingSummary.endgameScore() == null ? '-' : ratingSummary.endgameScore()}">-</strong>
                         </div>
                     </div>
                 </div>

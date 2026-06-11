@@ -50,10 +50,9 @@ class RatingControllerMvcTest {
                 "name=\"lichessClassical\"",
                 "name=\"dwz\"",
                 "name=\"fideElo\"",
-                "name=\"tacticsRating\"",
-                "name=\"endgameRating\"",
                 "name=\"note\""
         );
+        assertThat(html).doesNotContain("name=\"tacticsRating\"", "name=\"endgameRating\"");
     }
 
     @Test
@@ -67,8 +66,6 @@ class RatingControllerMvcTest {
                         .param("lichessClassical", "")
                         .param("dwz", "1700")
                         .param("fideElo", "")
-                        .param("tacticsRating", "2150")
-                        .param("endgameRating", "")
                         .param("note", "Start"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/rating"));
@@ -77,15 +74,12 @@ class RatingControllerMvcTest {
         assertThat(saved.getLichessBlitz()).isEqualTo(1800);
         assertThat(saved.getLichessRapid()).isNull();
         assertThat(saved.getDwz()).isEqualTo(1700);
-        assertThat(saved.getTacticsRating()).isEqualTo(2150);
-        assertThat(saved.getEndgameRating()).isNull();
         assertThat(saved.getNote()).isEqualTo("Start");
 
         mockMvc.perform(post("/rating")
                         .param("snapshotDate", date.toString())
                         .param("lichessBlitz", "1825")
                         .param("dwz", "1718")
-                        .param("endgameRating", "1550")
                         .param("note", "Update"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/rating"));
@@ -95,14 +89,13 @@ class RatingControllerMvcTest {
         assertThat(updated.getId()).isEqualTo(saved.getId());
         assertThat(updated.getLichessBlitz()).isEqualTo(1825);
         assertThat(updated.getDwz()).isEqualTo(1718);
-        assertThat(updated.getEndgameRating()).isEqualTo(1550);
         assertThat(updated.getNote()).isEqualTo("Update");
     }
 
     @Test
     void ratingShowsNewestSnapshotsFirstAndChanges() throws Exception {
-        repository.save(snapshot(LocalDate.of(2026, 6, 1), 1800, 1900, null, 1700, 2150, null));
-        repository.save(snapshot(LocalDate.of(2026, 6, 8), 1825, 1890, null, 1718, 2200, null));
+        repository.save(snapshot(LocalDate.of(2026, 6, 1), 1800, 1900, null, 1700, null));
+        repository.save(snapshot(LocalDate.of(2026, 6, 8), 1825, 1890, null, 1718, null));
 
         MvcResult result = mockMvc.perform(get("/rating"))
                 .andExpect(status().isOk())
@@ -110,7 +103,8 @@ class RatingControllerMvcTest {
         String html = result.getResponse().getContentAsString();
 
         assertThat(html.indexOf("2026-06-08")).isLessThan(html.indexOf("2026-06-01"));
-        assertThat(html).contains("Lichess Blitz", "+25", "Lichess Rapid", "-10", "DWZ", "+18", "Taktik", "+50");
+        assertThat(html).contains("Lichess Blitz", "+25", "Lichess Rapid", "-10", "DWZ", "+18");
+        assertThat(html).doesNotContain("Taktik", "Endspiel");
     }
 
     @Test
@@ -130,8 +124,7 @@ class RatingControllerMvcTest {
             Integer rapid,
             Integer classical,
             Integer dwz,
-            Integer tactics,
-            Integer endgame
+            Integer fide
     ) {
         RatingSnapshot snapshot = new RatingSnapshot();
         snapshot.setSnapshotDate(date);
@@ -139,8 +132,7 @@ class RatingControllerMvcTest {
         snapshot.setLichessRapid(rapid);
         snapshot.setLichessClassical(classical);
         snapshot.setDwz(dwz);
-        snapshot.setTacticsRating(tactics);
-        snapshot.setEndgameRating(endgame);
+        snapshot.setFideElo(fide);
         return snapshot;
     }
 }

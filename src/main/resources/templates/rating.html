@@ -40,12 +40,6 @@
                 <label>FIDE Elo
                     <input type="number" min="0" th:field="*{fideElo}" placeholder="1800">
                 </label>
-                <label>Taktik
-                    <input type="number" min="0" th:field="*{tacticsRating}" placeholder="2200">
-                </label>
-                <label>Endspiel
-                    <input type="number" min="0" th:field="*{endgameRating}" placeholder="1800">
-                </label>
             </div>
             <label class="rating-note">Notiz
                 <textarea rows="3" th:field="*{note}" placeholder="Turnier, Trainingsphase oder Kontext"></textarea>
@@ -79,8 +73,6 @@
                 <th>Lichess Classical</th>
                 <th>DWZ</th>
                 <th>FIDE Elo</th>
-                <th>Taktik</th>
-                <th>Endspiel</th>
                 <th>Notiz</th>
             </tr>
             </thead>
@@ -92,8 +84,6 @@
                 <td th:text="${snapshot.lichessClassical() == null ? '-' : snapshot.lichessClassical()}">-</td>
                 <td th:text="${snapshot.dwz() == null ? '-' : snapshot.dwz()}">-</td>
                 <td th:text="${snapshot.fideElo() == null ? '-' : snapshot.fideElo()}">-</td>
-                <td th:text="${snapshot.tacticsRating() == null ? '-' : snapshot.tacticsRating()}">-</td>
-                <td th:text="${snapshot.endgameRating() == null ? '-' : snapshot.endgameRating()}">-</td>
                 <td th:text="${snapshot.note() == null ? '-' : snapshot.note()}">-</td>
             </tr>
             </tbody>
