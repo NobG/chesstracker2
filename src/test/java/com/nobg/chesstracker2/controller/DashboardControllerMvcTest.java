@@ -275,6 +275,38 @@ class DashboardControllerMvcTest {
     }
 
     @Test
+    void todayShowsTrainingRatingsSavedThroughRatingForm() throws Exception {
+        mockMvc.perform(post("/rating")
+                        .param("snapshotDate", APP_TODAY.toString())
+                        .param("lichessBlitz", "1643")
+                        .param("lichessRapid", "1624")
+                        .param("lichessClassical", "1760")
+                        .param("dwz", "1627")
+                        .param("fideElo", "1670")
+                        .param("tacticsRating", "2215")
+                        .param("endgameRating", "1588"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/rating"));
+
+        MvcResult result = mockMvc.perform(get("/today"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(
+                "Online",
+                "1643",
+                "Offiziell",
+                "1670",
+                "Training",
+                "Taktik",
+                "2215",
+                "Endspiel",
+                "1588"
+        );
+    }
+
+    @Test
     void todayMarksWorkedCategoryAndKeepsSortedFieldBinding() throws Exception {
         TrainingCategory tactics = tactics();
         LocalDate today = APP_TODAY;
