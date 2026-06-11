@@ -122,34 +122,43 @@
                     <p class="rating-strip__title">Aktuelle Ratings</p>
                     <a class="rating-strip__link" href="/rating">Rating eintragen</a>
                 </div>
-                <div class="rating-strip__grid" th:if="${ratingSummary.hasAnyRating()}">
-                    <div class="rating-strip__item">
-                        <span class="rating-strip__label">Blitz</span>
-                        <strong class="rating-strip__value" th:text="${ratingSummary.lichessBlitz() == null ? '-' : ratingSummary.lichessBlitz()}">1850</strong>
+                <div class="hero-rating-groups" th:if="${ratingSummary.hasAnyRating()}">
+                    <div class="hero-rating-group">
+                        <p class="hero-rating-group-title">Online</p>
+                        <div class="hero-rating-row">
+                            <span class="hero-rating-label">Blitz</span>
+                            <strong class="hero-rating-value" th:text="${ratingSummary.lichessBlitz() == null ? '-' : ratingSummary.lichessBlitz()}">1850</strong>
+                        </div>
+                        <div class="hero-rating-row">
+                            <span class="hero-rating-label">Rapid</span>
+                            <strong class="hero-rating-value" th:text="${ratingSummary.lichessRapid() == null ? '-' : ratingSummary.lichessRapid()}">1780</strong>
+                        </div>
+                        <div class="hero-rating-row">
+                            <span class="hero-rating-label">Classical</span>
+                            <strong class="hero-rating-value" th:text="${ratingSummary.lichessClassical() == null ? '-' : ratingSummary.lichessClassical()}">-</strong>
+                        </div>
                     </div>
-                    <div class="rating-strip__item">
-                        <span class="rating-strip__label">Rapid</span>
-                        <strong class="rating-strip__value" th:text="${ratingSummary.lichessRapid() == null ? '-' : ratingSummary.lichessRapid()}">1780</strong>
+                    <div class="hero-rating-group">
+                        <p class="hero-rating-group-title">Offiziell</p>
+                        <div class="hero-rating-row">
+                            <span class="hero-rating-label">DWZ</span>
+                            <strong class="hero-rating-value" th:text="${ratingSummary.dwz() == null ? '-' : ratingSummary.dwz()}">1450</strong>
+                        </div>
+                        <div class="hero-rating-row">
+                            <span class="hero-rating-label">FIDE</span>
+                            <strong class="hero-rating-value" th:text="${ratingSummary.fideElo() == null ? '-' : ratingSummary.fideElo()}">-</strong>
+                        </div>
                     </div>
-                    <div class="rating-strip__item">
-                        <span class="rating-strip__label">Classical</span>
-                        <strong class="rating-strip__value" th:text="${ratingSummary.lichessClassical() == null ? '-' : ratingSummary.lichessClassical()}">-</strong>
-                    </div>
-                    <div class="rating-strip__item">
-                        <span class="rating-strip__label">DWZ</span>
-                        <strong class="rating-strip__value" th:text="${ratingSummary.dwz() == null ? '-' : ratingSummary.dwz()}">1450</strong>
-                    </div>
-                    <div class="rating-strip__item">
-                        <span class="rating-strip__label">FIDE</span>
-                        <strong class="rating-strip__value" th:text="${ratingSummary.fideElo() == null ? '-' : ratingSummary.fideElo()}">-</strong>
-                    </div>
-                    <div class="rating-strip__item">
-                        <span class="rating-strip__label">Taktik</span>
-                        <strong class="rating-strip__value" th:text="${ratingSummary.tacticsRating() == null ? '-' : ratingSummary.tacticsRating()}">-</strong>
-                    </div>
-                    <div class="rating-strip__item">
-                        <span class="rating-strip__label">Endspiel</span>
-                        <strong class="rating-strip__value" th:text="${ratingSummary.endgameRating() == null ? '-' : ratingSummary.endgameRating()}">-</strong>
+                    <div class="hero-rating-group">
+                        <p class="hero-rating-group-title">Training</p>
+                        <div class="hero-rating-row">
+                            <span class="hero-rating-label">Taktik</span>
+                            <strong class="hero-rating-value" th:text="${ratingSummary.tacticsRating() == null ? '-' : ratingSummary.tacticsRating()}">-</strong>
+                        </div>
+                        <div class="hero-rating-row">
+                            <span class="hero-rating-label">Endspiel</span>
+                            <strong class="hero-rating-value" th:text="${ratingSummary.endgameRating() == null ? '-' : ratingSummary.endgameRating()}">-</strong>
+                        </div>
                     </div>
                 </div>
                 <p class="rating-strip__empty" th:if="${!ratingSummary.hasAnyRating()}">Noch keine Ratings erfasst.</p>

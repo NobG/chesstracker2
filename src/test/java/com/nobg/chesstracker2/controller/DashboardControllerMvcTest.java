@@ -255,14 +255,17 @@ class DashboardControllerMvcTest {
 
         assertThat(html).contains(
                 "Aktuelle Ratings",
+                "Online",
                 "Blitz",
                 "1850",
                 "Rapid",
                 "1780",
                 "Classical",
+                "Offiziell",
                 "DWZ",
                 "1450",
                 "FIDE",
+                "Training",
                 "Taktik",
                 "2200",
                 "Endspiel"
