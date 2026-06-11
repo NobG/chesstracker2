@@ -9,6 +9,7 @@ public record CategoryStatViewModel(
         int trainingUnits,
         int successCount,
         int totalCount,
+        Integer currentRating,
         Integer successRate,
         LocalDate lastEntryDate,
         LocalDate bestDay,

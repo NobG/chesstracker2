@@ -383,6 +383,21 @@ class DashboardControllerMvcTest {
     }
 
     @Test
+    void categoriesShowLatestAimchessRatingWhenPresent() throws Exception {
+        TrainingCategory tactics = tactics();
+        saveScore(LocalDate.of(2026, 6, 5), tactics, 2100);
+        saveScore(APP_TODAY, tactics, 2215);
+
+        MvcResult result = mockMvc.perform(get("/categories"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains("Aktuelles Rating", "2215");
+        assertThat(html).doesNotContain("2100");
+    }
+
+    @Test
     void ratingPageRendersWeeklyMotivationHeader() throws Exception {
         MvcResult result = mockMvc.perform(get("/rating"))
                 .andExpect(status().isOk())

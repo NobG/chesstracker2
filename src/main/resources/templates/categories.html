@@ -27,6 +27,7 @@
             <div class="insight-list">
                 <p><span>Einheiten</span><strong th:text="${category.trainingUnits()}">0</strong></p>
                 <p><span>Aufgaben</span><strong th:text="${category.successCount()} + '/' + ${category.totalCount()}">0/0</strong></p>
+                <p><span>Aktuelles Rating</span><strong th:text="${category.currentRating() == null ? '-' : category.currentRating()}">-</strong></p>
                 <p><span>Letzter Eintrag</span><strong th:text="${category.lastEntryDate() == null ? '-' : category.lastEntryDate()}">-</strong></p>
                 <p><span>Bester Tag</span><strong th:text="${category.bestDay() == null ? '-' : category.bestDay() + ' (' + category.bestDayRate() + '%)'}">-</strong></p>
                 <p><span>Schwaechster Tag</span><strong th:text="${category.worstDay() == null ? '-' : category.worstDay() + ' (' + category.worstDayRate() + '%)'}">-</strong></p>

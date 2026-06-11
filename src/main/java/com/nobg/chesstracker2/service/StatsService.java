@@ -197,6 +197,7 @@ public class StatsService {
                 entries.size(),
                 success,
                 total,
+                latestAimchessRating(category.getKey()),
                 TrainingCalculator.successRate(success, total),
                 last == null ? null : last.getTrainingDate(),
                 best == null ? null : best.getTrainingDate(),
@@ -205,6 +206,13 @@ public class StatsService {
                 worst == null ? null : TrainingCalculator.successRate(worst.getSuccessCount(), worst.getTotalCount()),
                 trend(entries)
         );
+    }
+
+    private Integer latestAimchessRating(String categoryKey) {
+        return entryRepository
+                .findFirstByCategory_KeyAndScoreIsNotNullOrderByTrainingDateDescUpdatedAtDescIdDesc(categoryKey)
+                .map(DailyTrainingEntry::getScore)
+                .orElse(null);
     }
 
     private String bestCategory(List<CategoryStatViewModel> categories) {
