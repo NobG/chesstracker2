@@ -9,6 +9,8 @@ public record RatingSummaryViewModel(
         Integer lichessClassical,
         Integer dwz,
         Integer fideElo,
+        Integer tacticsRating,
+        Integer endgameRating,
         boolean hasAnyRating
 ) {
 }

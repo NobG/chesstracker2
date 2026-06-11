@@ -249,15 +249,16 @@ a {
 
 .rating-strip__grid {
     display: grid;
-    gap: 7px 10px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px 12px;
+    grid-template-columns: repeat(auto-fit, minmax(104px, max-content));
 }
 
 .rating-strip__item {
     align-items: baseline;
-    display: flex;
+    display: grid;
     gap: 8px;
-    justify-content: space-between;
+    grid-template-columns: minmax(58px, auto) minmax(34px, max-content);
+    justify-content: start;
     min-width: 0;
 }
 
@@ -752,7 +753,7 @@ th {
     }
 
     .rating-strip__grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(104px, max-content));
     }
 
     .metric-grid,
@@ -777,7 +778,7 @@ th {
     }
 
     .rating-strip__grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(104px, 1fr));
     }
 }
 

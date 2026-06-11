@@ -9,6 +9,8 @@ public record RatingSnapshotRowViewModel(
         Integer lichessClassical,
         Integer dwz,
         Integer fideElo,
+        Integer tacticsRating,
+        Integer endgameRating,
         String note
 ) {
 }

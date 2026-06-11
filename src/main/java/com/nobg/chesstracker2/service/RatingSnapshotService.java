@@ -37,7 +37,7 @@ public class RatingSnapshotService {
         return repository.findAllByOrderBySnapshotDateDesc().stream()
                 .findFirst()
                 .map(this::toSummary)
-                .orElseGet(() -> new RatingSummaryViewModel(null, null, null, null, null, null, false));
+                .orElseGet(() -> new RatingSummaryViewModel(null, null, null, null, null, null, null, null, false));
     }
 
     @Transactional
@@ -51,6 +51,8 @@ public class RatingSnapshotService {
         snapshot.setLichessClassical(form.getLichessClassical());
         snapshot.setDwz(form.getDwz());
         snapshot.setFideElo(form.getFideElo());
+        snapshot.setTacticsRating(form.getTacticsRating());
+        snapshot.setEndgameRating(form.getEndgameRating());
         snapshot.setNote(blankToNull(form.getNote()));
         repository.save(snapshot);
     }
@@ -64,6 +66,8 @@ public class RatingSnapshotService {
         requireNonNegative("Lichess Classical", form.getLichessClassical());
         requireNonNegative("DWZ", form.getDwz());
         requireNonNegative("FIDE Elo", form.getFideElo());
+        requireNonNegative("Taktik", form.getTacticsRating());
+        requireNonNegative("Endspiel", form.getEndgameRating());
     }
 
     private void requireNonNegative(String label, Integer value) {
@@ -84,6 +88,8 @@ public class RatingSnapshotService {
         addChange(changes, "Lichess Classical", current.getLichessClassical(), previous.getLichessClassical());
         addChange(changes, "DWZ", current.getDwz(), previous.getDwz());
         addChange(changes, "FIDE Elo", current.getFideElo(), previous.getFideElo());
+        addChange(changes, "Taktik", current.getTacticsRating(), previous.getTacticsRating());
+        addChange(changes, "Endspiel", current.getEndgameRating(), previous.getEndgameRating());
         return changes;
     }
 
@@ -103,6 +109,8 @@ public class RatingSnapshotService {
                 snapshot.getLichessClassical(),
                 snapshot.getDwz(),
                 snapshot.getFideElo(),
+                snapshot.getTacticsRating(),
+                snapshot.getEndgameRating(),
                 snapshot.getNote()
         );
     }
@@ -112,7 +120,9 @@ public class RatingSnapshotService {
                 || snapshot.getLichessRapid() != null
                 || snapshot.getLichessClassical() != null
                 || snapshot.getDwz() != null
-                || snapshot.getFideElo() != null;
+                || snapshot.getFideElo() != null
+                || snapshot.getTacticsRating() != null
+                || snapshot.getEndgameRating() != null;
         return new RatingSummaryViewModel(
                 snapshot.getSnapshotDate(),
                 snapshot.getLichessBlitz(),
@@ -120,6 +130,8 @@ public class RatingSnapshotService {
                 snapshot.getLichessClassical(),
                 snapshot.getDwz(),
                 snapshot.getFideElo(),
+                snapshot.getTacticsRating(),
+                snapshot.getEndgameRating(),
                 hasAnyRating
         );
     }

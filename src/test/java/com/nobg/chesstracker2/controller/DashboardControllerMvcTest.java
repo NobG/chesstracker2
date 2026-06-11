@@ -245,8 +245,8 @@ class DashboardControllerMvcTest {
 
     @Test
     void todayShowsLatestRatingSummaryWithoutNullValues() throws Exception {
-        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 6, 1), 1700, 1650, 1600, 1400, 1500));
-        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 6, 8), 1850, 1780, null, 1450, null));
+        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 6, 1), 1700, 1650, 1600, 1400, 1500, 2100, 1500));
+        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 6, 8), 1850, 1780, null, 1450, null, 2200, null));
 
         MvcResult result = mockMvc.perform(get("/today"))
                 .andExpect(status().isOk())
@@ -262,7 +262,10 @@ class DashboardControllerMvcTest {
                 "Classical",
                 "DWZ",
                 "1450",
-                "FIDE"
+                "FIDE",
+                "Taktik",
+                "2200",
+                "Endspiel"
         );
         assertThat(html)
                 .doesNotContain("1700", "1650", "1600", "1500", ">null<", "Noch keine Ratings erfasst.");
@@ -452,7 +455,9 @@ class DashboardControllerMvcTest {
             Integer rapid,
             Integer classical,
             Integer dwz,
-            Integer fide
+            Integer fide,
+            Integer tactics,
+            Integer endgame
     ) {
         RatingSnapshot snapshot = new RatingSnapshot();
         snapshot.setSnapshotDate(date);
@@ -461,6 +466,8 @@ class DashboardControllerMvcTest {
         snapshot.setLichessClassical(classical);
         snapshot.setDwz(dwz);
         snapshot.setFideElo(fide);
+        snapshot.setTacticsRating(tactics);
+        snapshot.setEndgameRating(endgame);
         return snapshot;
     }
 }

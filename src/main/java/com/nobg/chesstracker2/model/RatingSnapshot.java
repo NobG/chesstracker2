@@ -37,6 +37,10 @@ public class RatingSnapshot {
     @Column(name = "fide_elo")
     private Integer fideElo;
 
+    private Integer tacticsRating;
+
+    private Integer endgameRating;
+
     private String note;
 
     @Column(nullable = false)
@@ -107,6 +111,22 @@ public class RatingSnapshot {
 
     public void setFideElo(Integer fideElo) {
         this.fideElo = fideElo;
+    }
+
+    public Integer getTacticsRating() {
+        return tacticsRating;
+    }
+
+    public void setTacticsRating(Integer tacticsRating) {
+        this.tacticsRating = tacticsRating;
+    }
+
+    public Integer getEndgameRating() {
+        return endgameRating;
+    }
+
+    public void setEndgameRating(Integer endgameRating) {
+        this.endgameRating = endgameRating;
     }
 
     public String getNote() {

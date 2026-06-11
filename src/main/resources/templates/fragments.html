@@ -143,6 +143,14 @@
                         <span class="rating-strip__label">FIDE</span>
                         <strong class="rating-strip__value" th:text="${ratingSummary.fideElo() == null ? '-' : ratingSummary.fideElo()}">-</strong>
                     </div>
+                    <div class="rating-strip__item">
+                        <span class="rating-strip__label">Taktik</span>
+                        <strong class="rating-strip__value" th:text="${ratingSummary.tacticsRating() == null ? '-' : ratingSummary.tacticsRating()}">-</strong>
+                    </div>
+                    <div class="rating-strip__item">
+                        <span class="rating-strip__label">Endspiel</span>
+                        <strong class="rating-strip__value" th:text="${ratingSummary.endgameRating() == null ? '-' : ratingSummary.endgameRating()}">-</strong>
+                    </div>
                 </div>
                 <p class="rating-strip__empty" th:if="${!ratingSummary.hasAnyRating()}">Noch keine Ratings erfasst.</p>
             </section>
