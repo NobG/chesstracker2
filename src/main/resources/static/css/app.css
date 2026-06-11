@@ -558,6 +558,12 @@ textarea {
     margin-top: 12px;
 }
 
+.form-hint {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 12px 0 0;
+}
+
 .change-card strong {
     color: var(--text);
 }

@@ -16,19 +16,26 @@ import org.springframework.transaction.annotation.Transactional;
 public class RatingSnapshotService {
 
     private final RatingSnapshotRepository repository;
+    private final AppDateProvider appDateProvider;
 
-    public RatingSnapshotService(RatingSnapshotRepository repository) {
+    public RatingSnapshotService(RatingSnapshotRepository repository, AppDateProvider appDateProvider) {
         this.repository = repository;
+        this.appDateProvider = appDateProvider;
     }
 
     @Transactional(readOnly = true)
     public RatingSnapshotViewModel ratingView() {
         List<RatingSnapshot> snapshots = repository.findAllByOrderBySnapshotDateDesc();
         return new RatingSnapshotViewModel(
-                new RatingSnapshotForm(),
+                prefilledForm(snapshots),
                 snapshots.stream().map(this::toRow).toList(),
                 changes(snapshots)
         );
+    }
+
+    @Transactional(readOnly = true)
+    public RatingSnapshotForm prefilledForm() {
+        return prefilledForm(repository.findAllByOrderBySnapshotDateDesc());
     }
 
     @Transactional
@@ -44,6 +51,35 @@ public class RatingSnapshotService {
         snapshot.setFideElo(form.getFideElo());
         snapshot.setNote(blankToNull(form.getNote()));
         repository.save(snapshot);
+    }
+
+    private RatingSnapshotForm prefilledForm(List<RatingSnapshot> snapshots) {
+        LocalDate today = appDateProvider.today();
+        RatingSnapshotForm form = new RatingSnapshotForm();
+        form.setSnapshotDate(today);
+
+        RatingSnapshot todaySnapshot = snapshots.stream()
+                .filter(snapshot -> today.equals(snapshot.getSnapshotDate()))
+                .findFirst()
+                .orElse(null);
+        if (todaySnapshot != null) {
+            copyRatingsToForm(form, todaySnapshot);
+            form.setNote(todaySnapshot.getNote());
+            return form;
+        }
+
+        snapshots.stream()
+                .findFirst()
+                .ifPresent(snapshot -> copyRatingsToForm(form, snapshot));
+        return form;
+    }
+
+    private void copyRatingsToForm(RatingSnapshotForm form, RatingSnapshot snapshot) {
+        form.setLichessBlitz(snapshot.getLichessBlitz());
+        form.setLichessRapid(snapshot.getLichessRapid());
+        form.setLichessClassical(snapshot.getLichessClassical());
+        form.setDwz(snapshot.getDwz());
+        form.setFideElo(snapshot.getFideElo());
     }
 
     private void validate(RatingSnapshotForm form) {

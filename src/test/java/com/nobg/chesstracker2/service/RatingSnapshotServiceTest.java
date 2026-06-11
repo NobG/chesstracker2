@@ -19,7 +19,8 @@ import org.mockito.ArgumentCaptor;
 class RatingSnapshotServiceTest {
 
     private final RatingSnapshotRepository repository = org.mockito.Mockito.mock(RatingSnapshotRepository.class);
-    private final RatingSnapshotService service = new RatingSnapshotService(repository);
+    private final AppDateProvider appDateProvider = org.mockito.Mockito.mock(AppDateProvider.class);
+    private final RatingSnapshotService service = new RatingSnapshotService(repository, appDateProvider);
 
     @Test
     void saveSnapshotCreatesNewSnapshot() {
@@ -56,6 +57,7 @@ class RatingSnapshotServiceTest {
         RatingSnapshot current = snapshot(LocalDate.of(2026, 6, 8), 1825, null, null, 1718, null, null);
         RatingSnapshot previous = snapshot(LocalDate.of(2026, 6, 1), 1800, 1900, null, 1700, null, null);
         when(repository.findAllByOrderBySnapshotDateDesc()).thenReturn(List.of(current, previous));
+        when(appDateProvider.today()).thenReturn(LocalDate.of(2026, 6, 9));
 
         RatingSnapshotViewModel view = service.ratingView();
 
@@ -64,6 +66,60 @@ class RatingSnapshotServiceTest {
                         org.assertj.core.groups.Tuple.tuple("Lichess Blitz", "+25"),
                         org.assertj.core.groups.Tuple.tuple("DWZ", "+18")
                 );
+    }
+
+    @Test
+    void prefilledFormUsesTodayAndLatestSnapshotValues() {
+        LocalDate today = LocalDate.of(2026, 6, 9);
+        RatingSnapshot latest = snapshot(LocalDate.of(2026, 6, 1), 1643, 1624, 1760, 1627, 1670, "Old note");
+        when(appDateProvider.today()).thenReturn(today);
+        when(repository.findAllByOrderBySnapshotDateDesc()).thenReturn(List.of(latest));
+
+        RatingSnapshotForm form = service.prefilledForm();
+
+        assertThat(form.getSnapshotDate()).isEqualTo(today);
+        assertThat(form.getLichessBlitz()).isEqualTo(1643);
+        assertThat(form.getLichessRapid()).isEqualTo(1624);
+        assertThat(form.getLichessClassical()).isEqualTo(1760);
+        assertThat(form.getDwz()).isEqualTo(1627);
+        assertThat(form.getFideElo()).isEqualTo(1670);
+        assertThat(form.getNote()).isNull();
+    }
+
+    @Test
+    void prefilledFormUsesTodaySnapshotIncludingNoteWhenPresent() {
+        LocalDate today = LocalDate.of(2026, 6, 9);
+        RatingSnapshot todaySnapshot = snapshot(today, 1650, 1625, 1761, 1628, 1671, "Today note");
+        RatingSnapshot older = snapshot(LocalDate.of(2026, 6, 1), 1643, 1624, 1760, 1627, 1670, "Old note");
+        when(appDateProvider.today()).thenReturn(today);
+        when(repository.findAllByOrderBySnapshotDateDesc()).thenReturn(List.of(todaySnapshot, older));
+
+        RatingSnapshotForm form = service.prefilledForm();
+
+        assertThat(form.getSnapshotDate()).isEqualTo(today);
+        assertThat(form.getLichessBlitz()).isEqualTo(1650);
+        assertThat(form.getLichessRapid()).isEqualTo(1625);
+        assertThat(form.getLichessClassical()).isEqualTo(1761);
+        assertThat(form.getDwz()).isEqualTo(1628);
+        assertThat(form.getFideElo()).isEqualTo(1671);
+        assertThat(form.getNote()).isEqualTo("Today note");
+    }
+
+    @Test
+    void prefilledFormUsesTodayWithEmptyRatingsWhenNoSnapshotsExist() {
+        LocalDate today = LocalDate.of(2026, 6, 9);
+        when(appDateProvider.today()).thenReturn(today);
+        when(repository.findAllByOrderBySnapshotDateDesc()).thenReturn(List.of());
+
+        RatingSnapshotForm form = service.prefilledForm();
+
+        assertThat(form.getSnapshotDate()).isEqualTo(today);
+        assertThat(form.getLichessBlitz()).isNull();
+        assertThat(form.getLichessRapid()).isNull();
+        assertThat(form.getLichessClassical()).isNull();
+        assertThat(form.getDwz()).isNull();
+        assertThat(form.getFideElo()).isNull();
+        assertThat(form.getNote()).isNull();
     }
 
     @Test

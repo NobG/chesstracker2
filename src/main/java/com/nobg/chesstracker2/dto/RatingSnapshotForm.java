@@ -1,9 +1,11 @@
 package com.nobg.chesstracker2.dto;
 
 import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
 
 public class RatingSnapshotForm {
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate snapshotDate = LocalDate.now();
 
     private Integer lichessBlitz;
