@@ -67,9 +67,41 @@ class StatsServiceTest {
         assertThat(stats.improvedCategories()).contains("Tactics");
     }
 
+    @Test
+    void categoryOverviewEvaluatesTacticsChallengeBySolvedTasks() {
+        TrainingCategory challenge = category("tactics-challenge", "Tactics Challenge", 1);
+        LocalDate first = LocalDate.of(2026, 6, 1);
+        LocalDate second = LocalDate.of(2026, 6, 2);
+        LocalDate third = LocalDate.of(2026, 6, 3);
+        when(appDateProvider.today()).thenReturn(third);
+        when(categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc()).thenReturn(List.of(challenge));
+        when(entryRepository.findByTrainingDateBetweenOrderByTrainingDateAscCategorySortOrderAsc(third.minusYears(5), third))
+                .thenReturn(List.of(
+                        entry(challenge, first, 36, 39, 10),
+                        entry(challenge, second, 24, 27, 8),
+                        entry(challenge, third, 42, 45, 10)
+                ));
+
+        var stats = service.categoryOverview();
+
+        assertThat(stats).hasSize(1);
+        var challengeStats = stats.getFirst();
+        assertThat(challengeStats.challenge()).isTrue();
+        assertThat(challengeStats.challengeBestSolved()).isEqualTo(42);
+        assertThat(challengeStats.bestDay()).isEqualTo(third);
+        assertThat(challengeStats.bestDayRate()).isEqualTo(42);
+        assertThat(challengeStats.worstDay()).isEqualTo(second);
+        assertThat(challengeStats.worstDayRate()).isEqualTo(24);
+        assertThat(challengeStats.trend()).isEqualTo("steigend");
+    }
+
     private TrainingCategory category(String name, int sortOrder) {
+        return category(name.toLowerCase(), name, sortOrder);
+    }
+
+    private TrainingCategory category(String key, String name, int sortOrder) {
         TrainingCategory category = new TrainingCategory();
-        category.setKey(name.toLowerCase());
+        category.setKey(key);
         category.setName(name);
         category.setSortOrder(sortOrder);
         category.setActive(true);

@@ -28,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class StatsService {
 
+    private static final String TACTICS_CHALLENGE_KEY = "tactics-challenge";
+
     private final DailyTrainingEntryRepository entryRepository;
     private final TrainingCategoryRepository categoryRepository;
     private final DailyNoteRepository noteRepository;
@@ -179,16 +181,11 @@ public class StatsService {
     }
 
     private CategoryStatViewModel toCategoryStat(TrainingCategory category, List<DailyTrainingEntry> entries) {
+        boolean challenge = TACTICS_CHALLENGE_KEY.equals(category.getKey());
         int success = TrainingCalculator.totalSuccess(entries);
         int total = TrainingCalculator.totalTasks(entries);
-        DailyTrainingEntry best = entries.stream()
-                .filter(entry -> entry.getTotalCount() > 0)
-                .max(Comparator.comparing(entry -> TrainingCalculator.successRate(entry.getSuccessCount(), entry.getTotalCount())))
-                .orElse(null);
-        DailyTrainingEntry worst = entries.stream()
-                .filter(entry -> entry.getTotalCount() > 0)
-                .min(Comparator.comparing(entry -> TrainingCalculator.successRate(entry.getSuccessCount(), entry.getTotalCount())))
-                .orElse(null);
+        DailyTrainingEntry best = bestEntry(entries, challenge);
+        DailyTrainingEntry worst = worstEntry(entries, challenge);
         DailyTrainingEntry last = entries.stream().max(Comparator.comparing(DailyTrainingEntry::getTrainingDate)).orElse(null);
         return new CategoryStatViewModel(
                 category.getName(),
@@ -197,15 +194,47 @@ public class StatsService {
                 entries.size(),
                 success,
                 total,
+                challenge,
+                best == null ? null : best.getSuccessCount(),
                 latestAimchessRating(category.getKey()),
                 TrainingCalculator.successRate(success, total),
                 last == null ? null : last.getTrainingDate(),
                 best == null ? null : best.getTrainingDate(),
-                best == null ? null : TrainingCalculator.successRate(best.getSuccessCount(), best.getTotalCount()),
+                best == null ? null : displayValue(best, challenge),
                 worst == null ? null : worst.getTrainingDate(),
-                worst == null ? null : TrainingCalculator.successRate(worst.getSuccessCount(), worst.getTotalCount()),
-                trend(entries)
+                worst == null ? null : displayValue(worst, challenge),
+                trend(entries, challenge)
         );
+    }
+
+    private DailyTrainingEntry bestEntry(List<DailyTrainingEntry> entries, boolean challenge) {
+        return entries.stream()
+                .filter(entry -> entry.getTotalCount() > 0)
+                .max(entryComparator(challenge))
+                .orElse(null);
+    }
+
+    private DailyTrainingEntry worstEntry(List<DailyTrainingEntry> entries, boolean challenge) {
+        return entries.stream()
+                .filter(entry -> entry.getTotalCount() > 0)
+                .min(entryComparator(challenge))
+                .orElse(null);
+    }
+
+    private Comparator<DailyTrainingEntry> entryComparator(boolean challenge) {
+        if (challenge) {
+            return Comparator
+                    .comparingInt(DailyTrainingEntry::getSuccessCount)
+                    .thenComparing(entry -> TrainingCalculator.successRate(entry.getSuccessCount(), entry.getTotalCount()));
+        }
+        return Comparator.comparing(entry -> TrainingCalculator.successRate(entry.getSuccessCount(), entry.getTotalCount()));
+    }
+
+    private Integer displayValue(DailyTrainingEntry entry, boolean challenge) {
+        if (challenge) {
+            return entry.getSuccessCount();
+        }
+        return TrainingCalculator.successRate(entry.getSuccessCount(), entry.getTotalCount());
     }
 
     private Integer latestAimchessRating(String categoryKey) {
@@ -231,7 +260,7 @@ public class StatsService {
                 .orElse("-");
     }
 
-    private String trend(List<DailyTrainingEntry> entries) {
+    private String trend(List<DailyTrainingEntry> entries, boolean challenge) {
         List<DailyTrainingEntry> ordered = entries.stream()
                 .filter(entry -> entry.getTotalCount() > 0)
                 .sorted(Comparator.comparing(DailyTrainingEntry::getTrainingDate))
@@ -239,15 +268,23 @@ public class StatsService {
         if (ordered.size() < 2) {
             return "stabil";
         }
-        int first = TrainingCalculator.successRate(ordered.getFirst().getSuccessCount(), ordered.getFirst().getTotalCount());
-        int last = TrainingCalculator.successRate(ordered.getLast().getSuccessCount(), ordered.getLast().getTotalCount());
-        if (last >= first + 5) {
+        int first = trendValue(ordered.getFirst(), challenge);
+        int last = trendValue(ordered.getLast(), challenge);
+        int threshold = challenge ? 3 : 5;
+        if (last >= first + threshold) {
             return "steigend";
         }
-        if (last <= first - 5) {
+        if (last <= first - threshold) {
             return "fallend";
         }
         return "stabil";
+    }
+
+    private int trendValue(DailyTrainingEntry entry, boolean challenge) {
+        if (challenge) {
+            return entry.getSuccessCount();
+        }
+        return TrainingCalculator.successRate(entry.getSuccessCount(), entry.getTotalCount());
     }
 
     private String displayRate(Integer rate) {

@@ -22,15 +22,17 @@
                     </h2>
                     <p th:text="'Trend: ' + ${category.trend()}">Trend</p>
                 </div>
-                <strong class="rate-pill" th:text="${category.successRate() == null ? '-' : category.successRate() + '%'}">-</strong>
+                <strong class="rate-pill" th:text="${category.challenge() ? (category.challengeBestSolved() == null ? '-' : category.challengeBestSolved() + ' geloest') : (category.successRate() == null ? '-' : category.successRate() + '%')}">-</strong>
             </div>
             <div class="insight-list">
+                <p th:if="${category.challenge()}"><span>Modus</span><strong>10 min / 3 Fehler</strong></p>
                 <p><span>Einheiten</span><strong th:text="${category.trainingUnits()}">0</strong></p>
                 <p><span>Aufgaben</span><strong th:text="${category.successCount()} + '/' + ${category.totalCount()}">0/0</strong></p>
+                <p th:if="${category.challenge()}"><span>Challenge-Bestwert</span><strong th:text="${category.challengeBestSolved() == null ? '-' : category.challengeBestSolved() + ' geloest'}">-</strong></p>
                 <p><span>Aktuelles Rating</span><strong th:text="${category.currentRating() == null ? '-' : category.currentRating()}">-</strong></p>
                 <p><span>Letzter Eintrag</span><strong th:text="${category.lastEntryDate() == null ? '-' : category.lastEntryDate()}">-</strong></p>
-                <p><span>Bester Tag</span><strong th:text="${category.bestDay() == null ? '-' : category.bestDay() + ' (' + category.bestDayRate() + '%)'}">-</strong></p>
-                <p><span>Schwaechster Tag</span><strong th:text="${category.worstDay() == null ? '-' : category.worstDay() + ' (' + category.worstDayRate() + '%)'}">-</strong></p>
+                <p><span>Bester Tag</span><strong th:text="${category.bestDay() == null ? '-' : category.bestDay() + ' (' + category.bestDayRate() + (category.challenge() ? ' geloest)' : '%)')}">-</strong></p>
+                <p><span>Schwaechster Tag</span><strong th:text="${category.worstDay() == null ? '-' : category.worstDay() + ' (' + category.worstDayRate() + (category.challenge() ? ' geloest)' : '%)')}">-</strong></p>
             </div>
         </article>
     </section>

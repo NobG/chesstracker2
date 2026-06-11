@@ -398,6 +398,29 @@ class DashboardControllerMvcTest {
     }
 
     @Test
+    void categoriesRenderTacticsChallengeWithChallengeMetrics() throws Exception {
+        TrainingCategory challenge = categoryByName("Tactics Challenge");
+        saveEntry(LocalDate.of(2026, 6, 5), challenge, 31, 34, 10);
+        saveEntry(APP_TODAY, challenge, 38, 41, 10);
+
+        MvcResult result = mockMvc.perform(get("/categories"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(
+                "Tactics Challenge",
+                "38 geloest",
+                "Modus",
+                "10 min / 3 Fehler",
+                "Challenge-Bestwert",
+                "Bester Tag",
+                "(38 geloest)",
+                "Trend: steigend"
+        );
+    }
+
+    @Test
     void ratingPageRendersWeeklyMotivationHeader() throws Exception {
         MvcResult result = mockMvc.perform(get("/rating"))
                 .andExpect(status().isOk())
@@ -515,17 +538,29 @@ class DashboardControllerMvcTest {
     }
 
     private TrainingCategory tactics() {
+        return categoryByName("Tactics");
+    }
+
+    private TrainingCategory endgame() {
+        return categoryByName("Endgame");
+    }
+
+    private TrainingCategory categoryByName(String name) {
         return categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc().stream()
-                .filter(category -> "Tactics".equals(category.getName()))
+                .filter(category -> name.equals(category.getName()))
                 .findFirst()
                 .orElseThrow();
     }
 
-    private TrainingCategory endgame() {
-        return categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc().stream()
-                .filter(category -> "Endgame".equals(category.getName()))
-                .findFirst()
-                .orElseThrow();
+    private void saveEntry(LocalDate date, TrainingCategory category, int success, int total, int durationMinutes) {
+        DailyTrainingEntry entry = new DailyTrainingEntry();
+        entry.setTrainingDate(date);
+        entry.setCategory(category);
+        entry.setTrained(true);
+        entry.setSuccessCount(success);
+        entry.setTotalCount(total);
+        entry.setDurationMinutes(durationMinutes);
+        entryRepository.saveAndFlush(entry);
     }
 
     private void saveScore(LocalDate date, TrainingCategory category, Integer score) {
