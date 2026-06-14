@@ -1,4 +1,8 @@
 spring:
+  security:
+    user:
+      name: test-user
+      password: test-password
   datasource:
     url: jdbc:h2:mem:chesstracker2;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
     username: sa

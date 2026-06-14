@@ -2,9 +2,11 @@ package com.nobg.chesstracker2.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.nobg.chesstracker2.model.DailyTrainingEntry;
@@ -27,6 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -34,6 +38,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@WithMockUser(username = "norbert")
 class DashboardControllerMvcTest {
 
     private static final LocalDate APP_TODAY = LocalDate.of(2026, 6, 9);
@@ -104,6 +109,30 @@ class DashboardControllerMvcTest {
     }
 
     @Test
+    @WithAnonymousUser
+    void unauthenticatedTodayRedirectsToLogin() throws Exception {
+        mockMvc.perform(get("/today"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    void authenticatedTodayReturnsOk() throws Exception {
+        mockMvc.perform(get("/today"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void postTodayEntriesWithoutCsrfIsRejected() throws Exception {
+        TrainingCategory tactics = tactics();
+
+        mockMvc.perform(post("/today/entries")
+                        .param("entries[0].categoryId", tactics.getId().toString())
+                        .param("entries[0].trained", "true"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void todayFormRendersEntryFieldNamesWithoutFormPrefix() throws Exception {
         MvcResult result = mockMvc.perform(get("/today"))
                 .andExpect(status().isOk())
@@ -140,7 +169,10 @@ class DashboardControllerMvcTest {
                         "data-original-index=\"0\"",
                         "class=\"plan-training-button\"",
                         "Heute einplanen",
-                        "class=\"plan-training-badge\""
+                        "class=\"plan-training-badge\"",
+                        "name=\"_csrf\"",
+                        "action=\"/logout\"",
+                        ">Logout</button>"
                 )
                 .doesNotContain(
                         "name=\"form.entries[0].categoryId\"",
@@ -460,6 +492,7 @@ class DashboardControllerMvcTest {
         LocalDate today = APP_TODAY;
 
         mockMvc.perform(post("/today/entries")
+                        .with(csrf())
                         .param("entries[0].categoryId", tactics.getId().toString())
                         .param("entries[0].trained", "true")
                         .param("entries[0].result", "3/5")
@@ -481,6 +514,7 @@ class DashboardControllerMvcTest {
         assertThat(noteRepository.findByTrainingDate(today).orElseThrow().getCompletedAt()).isNull();
 
         mockMvc.perform(post("/today/complete")
+                        .with(csrf())
                         .param("entries[0].categoryId", tactics.getId().toString())
                         .param("entries[0].trained", "true")
                         .param("entries[0].result", "4/5")
@@ -509,6 +543,7 @@ class DashboardControllerMvcTest {
         LocalDate today = APP_TODAY;
 
         mockMvc.perform(post("/today/complete")
+                        .with(csrf())
                         .param("entries[0].categoryId", tactics.getId().toString())
                         .param("entries[0].trained", "true")
                         .param("entries[0].result", "3/5")
@@ -523,6 +558,7 @@ class DashboardControllerMvcTest {
         assertThat(html).contains("Tag abgeschlossen", "readonly", "disabled");
 
         mockMvc.perform(post("/today/entries")
+                        .with(csrf())
                         .param("entries[0].categoryId", tactics.getId().toString())
                         .param("entries[0].trained", "true")
                         .param("entries[0].result", "5/5")

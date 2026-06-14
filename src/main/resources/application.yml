@@ -10,6 +10,10 @@ chesstracker2:
 spring:
   application:
     name: chesstracker2
+  security:
+    user:
+      name: ${CHESSTRACKER2_AUTH_USER}
+      password: ${CHESSTRACKER2_AUTH_PASSWORD}
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/chesstracker2}
     username: ${SPRING_DATASOURCE_USERNAME:chesstracker2}

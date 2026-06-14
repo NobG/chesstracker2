@@ -16,10 +16,12 @@ services:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://chesstracker2-db:5432/chesstracker2}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-chesstracker2}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?Set SPRING_DATASOURCE_PASSWORD in .env}
+      CHESSTRACKER2_AUTH_USER: ${CHESSTRACKER2_AUTH_USER:?CHESSTRACKER2_AUTH_USER must be set}
+      CHESSTRACKER2_AUTH_PASSWORD: ${CHESSTRACKER2_AUTH_PASSWORD:?CHESSTRACKER2_AUTH_PASSWORD must be set}
     ports:
       - "127.0.0.1:${APP_PORT:-8080}:8080"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/today >/dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/login >/dev/null 2>&1 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5

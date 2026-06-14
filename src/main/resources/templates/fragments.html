@@ -101,6 +101,10 @@
         <a href="/categories">Kategorien</a>
         <a href="/rating">Rating</a>
     </nav>
+    <form th:action="@{/logout}" method="post" class="logout-form">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button type="submit" class="secondary-button">Logout</button>
+    </form>
     <section class="app-hero">
         <div class="app-brand">
             <div class="app-logo" aria-hidden="true">

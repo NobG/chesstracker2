@@ -2,6 +2,7 @@ package com.nobg.chesstracker2.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -24,6 +26,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@WithMockUser(username = "norbert")
 class RatingControllerMvcTest {
 
     @Autowired
@@ -58,7 +61,8 @@ class RatingControllerMvcTest {
                 "name=\"lichessClassical\"",
                 "name=\"dwz\"",
                 "name=\"fideElo\"",
-                "name=\"note\""
+                "name=\"note\"",
+                "name=\"_csrf\""
         );
         assertInputValue(html, "snapshotDate", "2026-06-09");
         assertThat(html).doesNotContain("name=\"tacticsRating\"", "name=\"endgameRating\"");
@@ -108,6 +112,7 @@ class RatingControllerMvcTest {
         LocalDate date = LocalDate.of(2026, 6, 8);
 
         mockMvc.perform(post("/rating")
+                        .with(csrf())
                         .param("snapshotDate", date.toString())
                         .param("lichessBlitz", "1800")
                         .param("lichessRapid", "")
@@ -125,6 +130,7 @@ class RatingControllerMvcTest {
         assertThat(saved.getNote()).isEqualTo("Start");
 
         mockMvc.perform(post("/rating")
+                        .with(csrf())
                         .param("snapshotDate", date.toString())
                         .param("lichessBlitz", "1825")
                         .param("dwz", "1718")
@@ -146,6 +152,7 @@ class RatingControllerMvcTest {
         repository.save(snapshot(LocalDate.of(2026, 6, 1), 1643, 1624, 1760, 1627, 1670));
 
         mockMvc.perform(post("/rating")
+                        .with(csrf())
                         .param("snapshotDate", date.toString())
                         .param("lichessBlitz", "1650")
                         .param("lichessRapid", "1624")
@@ -183,6 +190,7 @@ class RatingControllerMvcTest {
     @Test
     void postRatingRejectsNegativeRating() throws Exception {
         mockMvc.perform(post("/rating")
+                        .with(csrf())
                         .param("snapshotDate", "2026-06-08")
                         .param("lichessBlitz", "-1"))
                 .andExpect(status().is3xxRedirection())

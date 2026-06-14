@@ -34,7 +34,7 @@ a {
     border-bottom: 1px solid var(--line);
     display: grid;
     gap: 28px;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto 1fr auto;
     padding: 18px clamp(18px, 5vw, 64px);
     position: relative;
     z-index: 3;
@@ -96,6 +96,17 @@ a {
 .topnav nav a:hover {
     border-color: var(--line);
     color: var(--text);
+}
+
+.logout-form {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.logout-form .secondary-button {
+    font-size: 0.82rem;
+    min-height: 36px;
+    padding: 7px 11px;
 }
 
 .app-hero {
@@ -768,7 +779,8 @@ th {
         grid-template-columns: 1fr;
     }
 
-    .topnav nav {
+    .topnav nav,
+    .logout-form {
         justify-content: flex-start;
     }
 

@@ -21,6 +21,7 @@
             </div>
         </div>
         <form class="rating-form" method="post" th:action="@{/rating}" th:object="${form}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <div class="rating-grid">
                 <label>Datum
                     <input type="date" th:field="*{snapshotDate}" required>

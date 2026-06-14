@@ -24,6 +24,7 @@ docker compose logs -f chesstracker2-app
 ```
 
 Wichtig: `POSTGRES_PASSWORD` und `SPRING_DATASOURCE_PASSWORD` muessen identisch sein, solange derselbe Datenbanknutzer verwendet wird.
+Zusaetzlich muessen `CHESSTRACKER2_AUTH_USER` und `CHESSTRACKER2_AUTH_PASSWORD` gesetzt sein. Ohne diese Werte startet die App nicht.
 
 ## Zielserverbetrieb
 
@@ -98,10 +99,32 @@ export SPRING_PROFILES_ACTIVE=prod
 export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/chesstracker2
 export SPRING_DATASOURCE_USERNAME=chesstracker2
 export SPRING_DATASOURCE_PASSWORD=change-me
+export CHESSTRACKER2_AUTH_USER='norbert'
+export CHESSTRACKER2_AUTH_PASSWORD='ein-starkes-passwort'
 ./mvnw spring-boot:run
 ```
 
 Die Anwendung laeuft dann standardmaessig unter `http://localhost:8080`.
+
+## App-Login
+
+Alle App-Seiten und POST-Aktionen sind per Spring Security Form-Login geschuetzt. Statische Assets wie `/css/**` und `/favicon.svg` bleiben oeffentlich erreichbar. Logout erfolgt ueber den kompakten Button in der Kopfzeile.
+
+Die Login-Daten kommen ausschliesslich aus der Umgebung:
+
+```bash
+export CHESSTRACKER2_AUTH_USER='norbert'
+export CHESSTRACKER2_AUTH_PASSWORD='ein-starkes-passwort'
+```
+
+Oder in der `.env` im Deploy-Verzeichnis:
+
+```env
+CHESSTRACKER2_AUTH_USER=norbert
+CHESSTRACKER2_AUTH_PASSWORD=ein-starkes-passwort
+```
+
+CSRF bleibt aktiv. Alle POST-Formulare enthalten deshalb ein CSRF-Hidden-Field.
 
 ## Konfiguration
 
@@ -114,6 +137,8 @@ Wichtige Umgebungsvariablen:
 - `SPRING_DATASOURCE_USERNAME`
 - `SPRING_DATASOURCE_PASSWORD`
 - `SPRING_PROFILES_ACTIVE=dev|prod`
+- `CHESSTRACKER2_AUTH_USER`
+- `CHESSTRACKER2_AUTH_PASSWORD`
 
 PostgreSQL wird fuer `dev` und `prod` verwendet. H2 ist bewusst nur als Test-Dependency gescoped und landet nicht im normalen Spring-Boot-Artefakt. Dadurch bleiben Repository- und Service-Tests lokal reproduzierbar, waehrend die laufende Anwendung dieselbe Datenbankklasse nutzt wie die Zielumgebung.
 

@@ -4,6 +4,7 @@ set -euo pipefail
 COMPOSE="${COMPOSE:-docker compose}"
 TMP_DIR="${TMPDIR:-/tmp}"
 BODY_FILE="${TMP_DIR}/chesstracker2-docker-smoke-body-$$.html"
+COOKIE_FILE="${TMP_DIR}/chesstracker2-docker-smoke-cookie-$$.txt"
 
 if [[ -f .env ]]; then
   set -a
@@ -15,7 +16,7 @@ fi
 BASE_URL="${BASE_URL:-http://127.0.0.1:${APP_PORT:-8080}}"
 
 cleanup() {
-  rm -f "$BODY_FILE"
+  rm -f "$BODY_FILE" "$COOKIE_FILE"
 }
 trap cleanup EXIT
 
@@ -24,8 +25,41 @@ fail() {
   exit 1
 }
 
+require_auth_env() {
+  if [[ -z "${CHESSTRACKER2_AUTH_USER:-}" || -z "${CHESSTRACKER2_AUTH_PASSWORD:-}" ]]; then
+    fail "CHESSTRACKER2_AUTH_USER und CHESSTRACKER2_AUTH_PASSWORD muessen gesetzt sein"
+  fi
+}
+
+login() {
+  local csrf
+  local status
+
+  status="$(curl -sS -c "$COOKIE_FILE" --max-time 30 -o "$BODY_FILE" -w '%{http_code}' "$BASE_URL/login")" || fail "Login-Seite nicht erreichbar"
+  if [[ "$status" != "200" ]]; then
+    fail "Login-Seite liefert HTTP $status"
+  fi
+  csrf="$(sed -n 's/.*name="_csrf"[^>]*value="\([^"]*\)".*/\1/p' "$BODY_FILE" | head -n 1)"
+  if [[ -z "$csrf" ]]; then
+    fail "CSRF-Token auf Login-Seite nicht gefunden"
+  fi
+
+  status="$(
+    curl -sS -L -b "$COOKIE_FILE" -c "$COOKIE_FILE" --max-time 30 \
+      -o "$BODY_FILE" -w '%{http_code}' \
+      --data-urlencode "username=${CHESSTRACKER2_AUTH_USER}" \
+      --data-urlencode "password=${CHESSTRACKER2_AUTH_PASSWORD}" \
+      --data-urlencode "_csrf=${csrf}" \
+      "$BASE_URL/login"
+  )" || fail "Login-POST fehlgeschlagen"
+  if [[ "$status" != "200" ]] || ! grep -Eq "Copy-Block|Aimchess Training|chesstracker2" "$BODY_FILE"; then
+    fail "Login fehlgeschlagen oder App-Startseite nicht erreicht"
+  fi
+}
+
 echo "Pruefe Docker Compose Konfiguration ..."
 $COMPOSE config >/dev/null || fail "docker compose config ist ungueltig"
+require_auth_env
 
 echo "Starte Container ..."
 $COMPOSE up -d --build || fail "Container konnten nicht gestartet werden"
@@ -45,7 +79,7 @@ done
 
 fetch_page() {
   local path="$1"
-  curl -sS -L --max-time 30 --retry 5 --retry-delay 2 -o "$BODY_FILE" -w '%{http_code}' "$BASE_URL$path"
+  curl -sS -L -b "$COOKIE_FILE" -c "$COOKIE_FILE" --max-time 30 --retry 5 --retry-delay 2 -o "$BODY_FILE" -w '%{http_code}' "$BASE_URL$path"
 }
 
 check_page() {
@@ -64,6 +98,7 @@ check_page() {
 }
 
 echo "Pruefe App-Endpunkte ..."
+login
 check_page "/today" "Copy-Block"
 check_page "/today" "Tactics"
 check_page "/week" "Wochenstatistik"

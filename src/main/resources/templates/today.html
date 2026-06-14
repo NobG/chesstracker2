@@ -37,6 +37,7 @@
     </section>
 
     <form id="training-form" class="training-form" method="post" th:action="${saveAction}" th:object="${form}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         <section class="entry-grid" data-training-plan-grid th:attr="data-training-date=${view.date}">
             <article class="entry-card" th:classappend="${entry.workedToday()} ? ' is-worked-today'"
                      th:each="formEntry, stat : ${view.form.entries}" th:with="entry=${view.entries[stat.index]}"
