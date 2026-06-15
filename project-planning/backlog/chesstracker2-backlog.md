@@ -23,6 +23,8 @@
 - Detailseite je Kategorie mit Diagramm
 - Export als CSV
 - Kalenderansicht
+- Ratingaenderung direkt auf der Startseite anzeigen, z. B. `+10` oder `-10` gegenueber dem vorherigen gespeicherten Ratingwert.
+- Session-/Login-Ablauf benutzerfreundlicher machen: Wenn die Seite laenger offen ist und der Nutzer danach Ergebnisse speichert, sollen die eingegebenen Daten nicht verloren gehen. Statt aktueller Fehlermeldung und erneutem Login mit Neueingabe eine robuste Loesung umsetzen, z. B. Session verlaengern, Warnhinweis vor Ablauf, Zwischenspeichern im Browser oder sauberer Redirect mit Erhalt der Formulardaten.
 - Verbesserte Tagesbewertung: aktuelle `automaticSummary` nicht nur nach Erfolgsquote bewerten, sondern Trainingsumfang, Tagesabschluss, Kategorie-Mix, Quote, Score und gespeicherte Notizen getrennt ausweisen; Formulierung neutraler machen und erklaeren, dass es eine Regelbewertung ist, keine KI-Analyse.
 - Verbesserte Validierung mit Inline-Fehlern
 - Optional TLS-Automatisierung fuer nginx/certbot dokumentieren
