@@ -7,6 +7,7 @@ public record CategoryEntryViewModel(
         boolean beta,
         boolean workedToday,
         String description,
+        boolean pointsOnly,
         boolean trained,
         String result,
         Integer score,

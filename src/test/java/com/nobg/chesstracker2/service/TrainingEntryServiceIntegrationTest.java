@@ -1,6 +1,7 @@
 package com.nobg.chesstracker2.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.nobg.chesstracker2.dto.TrainingDayForm;
 import com.nobg.chesstracker2.dto.TrainingEntryForm;
@@ -70,6 +71,52 @@ class TrainingEntryServiceIntegrationTest {
     }
 
     @Test
+    void saveDayStoresTacticsChallengePointsWithoutResult() {
+        LocalDate date = LocalDate.of(2026, 6, 11);
+        TrainingCategory challenge = tacticsChallenge();
+
+        TrainingEntryForm entry = new TrainingEntryForm();
+        entry.setCategoryId(challenge.getId());
+        entry.setTrained(true);
+        entry.setScore(15);
+        entry.setDurationMinutes(3);
+
+        TrainingDayForm form = new TrainingDayForm();
+        form.setEntries(List.of(entry));
+
+        boolean saved = service.saveDay(date, form);
+
+        var savedEntry = entryRepository.findByTrainingDateAndCategoryId(date, challenge.getId()).orElseThrow();
+        DaySummaryViewModel summary = service.daySummary(date);
+        assertThat(saved).isTrue();
+        assertThat(savedEntry.getScore()).isEqualTo(15);
+        assertThat(savedEntry.getSuccessCount()).isZero();
+        assertThat(savedEntry.getTotalCount()).isZero();
+        assertThat(summary.successCount()).isZero();
+        assertThat(summary.totalCount()).isZero();
+        assertThat(summary.successRate()).isNull();
+        assertThat(summary.totalDurationMinutes()).isEqualTo(3);
+        assertThat(summary.copyBlock()).contains("Tactics Challenge: Punkte: 15, Zeit: 3 min");
+    }
+
+    @Test
+    void saveDayStillRequiresResultForNormalTrainedCategories() {
+        LocalDate date = LocalDate.of(2026, 6, 12);
+        TrainingCategory tactics = tactics();
+
+        TrainingEntryForm entry = new TrainingEntryForm();
+        entry.setCategoryId(tactics.getId());
+        entry.setTrained(true);
+
+        TrainingDayForm form = new TrainingDayForm();
+        form.setEntries(List.of(entry));
+
+        assertThatThrownBy(() -> service.saveDay(date, form))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Trainierte Kategorien brauchen ein Ergebnis wie 7/10.");
+    }
+
+    @Test
     void completeDayStoresCompletionLockAndCopyBlockDisplaysIt() {
         LocalDate date = LocalDate.of(2026, 6, 9);
         TrainingCategory tactics = tactics();
@@ -130,6 +177,13 @@ class TrainingEntryServiceIntegrationTest {
     private TrainingCategory tactics() {
         return categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc().stream()
                 .filter(category -> "Tactics".equals(category.getName()))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private TrainingCategory tacticsChallenge() {
+        return categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc().stream()
+                .filter(category -> "Tactics Challenge".equals(category.getName()))
                 .findFirst()
                 .orElseThrow();
     }

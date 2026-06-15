@@ -97,8 +97,11 @@ public class TrainingEntryService {
                 throw new IllegalArgumentException("Unbekannte Trainingskategorie.");
             }
 
-            TrainingResult result = TrainingCalculator.parseResult(entryForm.getResult());
-            if (entryForm.isTrained() && result.totalCount() == 0) {
+            boolean pointsOnly = TrainingCategoryRules.isPointsOnlyCategory(category);
+            TrainingResult result = pointsOnly
+                    ? new TrainingResult(0, 0)
+                    : TrainingCalculator.parseResult(entryForm.getResult());
+            if (entryForm.isTrained() && !pointsOnly && result.totalCount() == 0) {
                 throw new IllegalArgumentException("Trainierte Kategorien brauchen ein Ergebnis wie 7/10.");
             }
             if (entryForm.getDurationMinutes() != null && entryForm.getDurationMinutes() < 0) {
@@ -180,6 +183,7 @@ public class TrainingEntryService {
                     CategoryIconMapper.isBeta(category.getKey()),
                     false,
                     category.getDescription(),
+                    TrainingCategoryRules.isPointsOnlyCategory(category),
                     false,
                     "",
                     null,
@@ -195,12 +199,19 @@ public class TrainingEntryService {
                 CategoryIconMapper.isBeta(category.getKey()),
                 workedToday(entry),
                 category.getDescription(),
+                TrainingCategoryRules.isPointsOnlyCategory(category),
                 entry.isTrained(),
-                resultText(entry.getSuccessCount(), entry.getTotalCount()),
-                entry.getScore(),
+                TrainingCategoryRules.isPointsOnlyCategory(category)
+                        ? ""
+                        : resultText(entry.getSuccessCount(), entry.getTotalCount()),
+                TrainingCategoryRules.isPointsOnlyCategory(category)
+                        ? TrainingCategoryRules.pointsValue(entry)
+                        : entry.getScore(),
                 entry.getDurationMinutes(),
                 entry.getNote(),
-                TrainingCalculator.successRate(entry.getSuccessCount(), entry.getTotalCount())
+                TrainingCategoryRules.isPointsOnlyCategory(category)
+                        ? null
+                        : TrainingCalculator.successRate(entry.getSuccessCount(), entry.getTotalCount())
         );
     }
 
@@ -209,8 +220,12 @@ public class TrainingEntryService {
         entryForm.setCategoryId(category.getId());
         if (entry != null) {
             entryForm.setTrained(entry.isTrained());
-            entryForm.setResult(resultText(entry.getSuccessCount(), entry.getTotalCount()));
-            entryForm.setScore(entry.getScore());
+            entryForm.setResult(TrainingCategoryRules.isPointsOnlyCategory(category)
+                    ? ""
+                    : resultText(entry.getSuccessCount(), entry.getTotalCount()));
+            entryForm.setScore(TrainingCategoryRules.isPointsOnlyCategory(category)
+                    ? TrainingCategoryRules.pointsValue(entry)
+                    : entry.getScore());
             entryForm.setDurationMinutes(entry.getDurationMinutes());
             entryForm.setNote(entry.getNote());
         }
@@ -260,11 +275,16 @@ public class TrainingEntryService {
             builder.append("- Keine Eintraege\n");
         } else {
             for (CategoryEntryViewModel entry : entries) {
-                builder.append("- ").append(entry.categoryName()).append(": ").append(entry.result());
+                builder.append("- ").append(entry.categoryName()).append(": ");
+                if (entry.pointsOnly()) {
+                    builder.append("Punkte: ").append(entry.score() == null ? "-" : entry.score());
+                } else {
+                    builder.append(entry.result());
+                }
                 if (entry.successRate() != null) {
                     builder.append(" = ").append(entry.successRate()).append("%");
                 }
-                if (entry.score() != null) {
+                if (!entry.pointsOnly() && entry.score() != null) {
                     builder.append(", Score: ").append(entry.score());
                 }
                 if (entry.durationMinutes() != null) {

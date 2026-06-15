@@ -213,6 +213,24 @@ class DashboardControllerMvcTest {
     }
 
     @Test
+    void todayRendersTacticsChallengeWithPointsField() throws Exception {
+        MvcResult result = mockMvc.perform(get("/today"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(
+                "Tactics Challenge",
+                "data-points-only=\"true\"",
+                "name=\"entries[14].result\"",
+                "name=\"entries[14].score\"",
+                "<span>Punkte</span>",
+                "placeholder=\"15\""
+        );
+        assertThat(html).doesNotContain("name=\"form.entries", "name=\"form.dayNote\"");
+    }
+
+    @Test
     void migrationSeedsMotivationQuotes() {
         assertThat(quoteRepository.findByActiveTrueOrderBySortOrderAscIdAsc())
                 .hasSize(10)
@@ -538,6 +556,39 @@ class DashboardControllerMvcTest {
     }
 
     @Test
+    void postTodayEntriesStoresTacticsChallengePointsWithoutResult() throws Exception {
+        TrainingCategory challenge = tacticsChallenge();
+        LocalDate today = APP_TODAY;
+
+        mockMvc.perform(post("/today/entries")
+                        .with(csrf())
+                        .param("entries[0].categoryId", challenge.getId().toString())
+                        .param("entries[0].trained", "true")
+                        .param("entries[0].score", "15")
+                        .param("entries[0].durationMinutes", "3"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/today"));
+
+        DailyTrainingEntry saved = entryRepository.findByTrainingDateAndCategoryId(today, challenge.getId()).orElseThrow();
+        assertThat(saved.isTrained()).isTrue();
+        assertThat(saved.getSuccessCount()).isZero();
+        assertThat(saved.getTotalCount()).isZero();
+        assertThat(saved.getScore()).isEqualTo(15);
+        assertThat(saved.getDurationMinutes()).isEqualTo(3);
+
+        MvcResult result = mockMvc.perform(get("/today"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+        assertThat(html).contains(
+                "Tactics Challenge: Punkte: 15, Zeit: 3 min",
+                "- Aufgaben: 0/0",
+                "- Zeit: 3 min"
+        );
+        assertThat(html).doesNotContain("Tactics Challenge: 15/18");
+    }
+
+    @Test
     void completedTodayIsLockedAndPostEntriesCannotChangeIt() throws Exception {
         TrainingCategory tactics = tactics();
         LocalDate today = APP_TODAY;
@@ -579,6 +630,10 @@ class DashboardControllerMvcTest {
 
     private TrainingCategory endgame() {
         return categoryByName("Endgame");
+    }
+
+    private TrainingCategory tacticsChallenge() {
+        return categoryByName("Tactics Challenge");
     }
 
     private TrainingCategory categoryByName(String name) {

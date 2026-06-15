@@ -40,6 +40,33 @@ class TrainingEntryServiceTest {
     }
 
     @Test
+    void daySummaryTreatsTacticsChallengeAsPointsOnly() {
+        LocalDate date = LocalDate.of(2026, 6, 8);
+        TrainingCategory tactics = category(1L, "tactics", "Tactics", 20);
+        TrainingCategory challenge = category(2L, "tactics-challenge", "Tactics Challenge", 150);
+        when(entryRepository.findByTrainingDateOrderByCategorySortOrderAsc(date))
+                .thenReturn(List.of(
+                        entry(tactics, true, 3, 8, null, 12, null),
+                        entry(challenge, true, 15, 18, null, 3, null)
+                ));
+        when(noteRepository.findByTrainingDate(date)).thenReturn(Optional.empty());
+
+        DaySummaryViewModel summary = service.daySummary(date);
+
+        assertThat(summary.trainedCategoryCount()).isEqualTo(2);
+        assertThat(summary.successCount()).isEqualTo(3);
+        assertThat(summary.totalCount()).isEqualTo(8);
+        assertThat(summary.successRate()).isEqualTo(38);
+        assertThat(summary.totalDurationMinutes()).isEqualTo(15);
+        assertThat(summary.copyBlock()).contains(
+                "Tactics: 3/8 = 38%, Zeit: 12 min",
+                "Tactics Challenge: Punkte: 15, Zeit: 3 min",
+                "- Aufgaben: 3/8 = 38%"
+        );
+        assertThat(summary.copyBlock()).doesNotContain("18/26", "15/18 = 83%");
+    }
+
+    @Test
     void todayViewMarksWorkedCategoriesAndKeepsEmptyEntriesUnmarked() {
         LocalDate date = LocalDate.of(2026, 6, 8);
         TrainingCategory tactics = category(1L, "tactics", "Tactics", 20);

@@ -36,11 +36,19 @@ public final class TrainingCalculator {
     }
 
     public static int totalSuccess(Collection<DailyTrainingEntry> entries) {
-        return entries.stream().filter(DailyTrainingEntry::isTrained).mapToInt(DailyTrainingEntry::getSuccessCount).sum();
+        return entries.stream()
+                .filter(DailyTrainingEntry::isTrained)
+                .filter(entry -> !TrainingCategoryRules.isPointsOnlyEntry(entry))
+                .mapToInt(DailyTrainingEntry::getSuccessCount)
+                .sum();
     }
 
     public static int totalTasks(Collection<DailyTrainingEntry> entries) {
-        return entries.stream().filter(DailyTrainingEntry::isTrained).mapToInt(DailyTrainingEntry::getTotalCount).sum();
+        return entries.stream()
+                .filter(DailyTrainingEntry::isTrained)
+                .filter(entry -> !TrainingCategoryRules.isPointsOnlyEntry(entry))
+                .mapToInt(DailyTrainingEntry::getTotalCount)
+                .sum();
     }
 
     public static int totalDuration(Collection<DailyTrainingEntry> entries) {

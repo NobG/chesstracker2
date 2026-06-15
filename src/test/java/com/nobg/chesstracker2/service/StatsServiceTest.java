@@ -47,6 +47,35 @@ class StatsServiceTest {
     }
 
     @Test
+    void weeklyStatsIgnoreTacticsChallengeForTasksAndRates() {
+        TrainingCategory tactics = category("tactics", "Tactics", 1);
+        TrainingCategory challenge = category("tactics-challenge", "Tactics Challenge", 2);
+        LocalDate start = LocalDate.of(2026, 6, 8);
+        when(categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc()).thenReturn(List.of(tactics, challenge));
+        when(entryRepository.findByTrainingDateBetweenOrderByTrainingDateAscCategorySortOrderAsc(start, start.plusDays(6)))
+                .thenReturn(List.of(
+                        entry(tactics, start, 3, 8, 12),
+                        entry(challenge, start, 15, 18, 3)
+                ));
+        when(noteRepository.findByTrainingDateBetween(start, start.plusDays(6))).thenReturn(List.of());
+
+        WeeklyStatsViewModel stats = service.weekStats(2026, 24);
+
+        assertThat(stats.trainingDays()).isEqualTo(1);
+        assertThat(stats.trainedCategories()).isEqualTo(2);
+        assertThat(stats.totalTasks()).isEqualTo(8);
+        assertThat(stats.totalDurationMinutes()).isEqualTo(15);
+        assertThat(stats.successRate()).isEqualTo(38);
+        assertThat(stats.days().getFirst().trainedCategories()).isEqualTo(2);
+        assertThat(stats.days().getFirst().totalTasks()).isEqualTo(8);
+        assertThat(stats.days().getFirst().successRate()).isEqualTo(38);
+        assertThat(stats.categories()).filteredOn("categoryName", "Tactics Challenge")
+                .first()
+                .extracting("successRate")
+                .isNull();
+    }
+
+    @Test
     void buildsMonthlyStats() {
         TrainingCategory tactics = category("Tactics", 1);
         LocalDate first = LocalDate.of(2026, 6, 1);
@@ -65,6 +94,31 @@ class StatsServiceTest {
         assertThat(stats.partialTrainingDays()).isEqualTo(1);
         assertThat(stats.completionRate()).isEqualTo(50);
         assertThat(stats.improvedCategories()).contains("Tactics");
+    }
+
+    @Test
+    void monthlyStatsIgnoreTacticsChallengeForTasksAndRates() {
+        TrainingCategory tactics = category("tactics", "Tactics", 1);
+        TrainingCategory challenge = category("tactics-challenge", "Tactics Challenge", 2);
+        LocalDate first = LocalDate.of(2026, 6, 1);
+        when(categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc()).thenReturn(List.of(tactics, challenge));
+        when(entryRepository.findByTrainingDateBetweenOrderByTrainingDateAscCategorySortOrderAsc(first, LocalDate.of(2026, 6, 30)))
+                .thenReturn(List.of(
+                        entry(tactics, first, 3, 8, 12),
+                        entry(challenge, first, 15, 18, 3)
+                ));
+        when(noteRepository.findByTrainingDateBetween(first, LocalDate.of(2026, 6, 30))).thenReturn(List.of());
+
+        MonthlyStatsViewModel stats = service.monthStats(2026, 6);
+
+        assertThat(stats.trainingDays()).isEqualTo(1);
+        assertThat(stats.totalTasks()).isEqualTo(8);
+        assertThat(stats.totalDurationMinutes()).isEqualTo(15);
+        assertThat(stats.successRate()).isEqualTo(38);
+        assertThat(stats.categories()).filteredOn("categoryName", "Tactics Challenge")
+                .first()
+                .extracting("successRate")
+                .isNull();
     }
 
     @Test

@@ -58,8 +58,8 @@
                     </span>
                 </td>
                 <td th:text="${category.trainingUnits()}">0</td>
-                <td th:text="${category.successCount()} + '/' + ${category.totalCount()}">0/0</td>
-                <td th:text="${category.successRate() == null ? '-' : category.successRate() + '%'}">-</td>
+                <td th:text="${category.challenge()} ? 'Punkte-Kategorie' : category.successCount() + '/' + category.totalCount()">0/0</td>
+                <td th:text="${category.challenge()} ? '-' : (category.successRate() == null ? '-' : category.successRate() + '%')">-</td>
                 <td th:text="${category.trend()}">stabil</td>
             </tr>
             </tbody>

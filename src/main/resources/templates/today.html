@@ -41,7 +41,7 @@
         <section class="entry-grid" data-training-plan-grid th:attr="data-training-date=${view.date}">
             <article class="entry-card" th:classappend="${entry.workedToday()} ? ' is-worked-today'"
                      th:each="formEntry, stat : ${view.form.entries}" th:with="entry=${view.entries[stat.index]}"
-                     th:attr="data-category-id=${entry.categoryId()},data-original-index=${stat.index}">
+                     th:attr="data-category-id=${entry.categoryId()},data-original-index=${stat.index},data-points-only=${entry.pointsOnly()}">
                 <input type="hidden" th:field="*{entries[__${stat.index}__].categoryId}">
                 <div class="entry-card__head">
                     <div>
@@ -65,11 +65,12 @@
                     </div>
                 </div>
                 <div class="field-row">
-                    <label>Ergebnis
+                    <label th:if="${!entry.pointsOnly()}">Ergebnis
                         <input th:field="*{entries[__${stat.index}__].result}" th:readonly="${view.summary.locked()}" placeholder="7/10">
                     </label>
-                    <label>Score
-                        <input type="number" th:field="*{entries[__${stat.index}__].score}" th:readonly="${view.summary.locked()}" placeholder="1420">
+                    <input th:if="${entry.pointsOnly()}" type="hidden" th:field="*{entries[__${stat.index}__].result}">
+                    <label><span th:text="${entry.pointsOnly()} ? 'Punkte' : 'Score'">Score</span>
+                        <input type="number" th:field="*{entries[__${stat.index}__].score}" th:readonly="${view.summary.locked()}" th:placeholder="${entry.pointsOnly()} ? '15' : '1420'">
                     </label>
                     <label>Minuten
                         <input type="number" min="0" th:field="*{entries[__${stat.index}__].durationMinutes}" th:readonly="${view.summary.locked()}" placeholder="15">
@@ -273,19 +274,22 @@ function completionPreview() {
         }
 
         const category = card.querySelector('.category-label span')?.textContent.trim() || 'Kategorie';
+        const pointsOnly = card.dataset.pointsOnly === 'true';
         const resultMatch = result.match(/^(\d+)\s*\/\s*(\d+)$/);
         let row = `- ${category}`;
-        if (result) {
+        if (pointsOnly) {
+            row += `: Punkte: ${score || '-'}`;
+        } else if (result) {
             row += `: ${result}`;
         }
-        if (resultMatch) {
+        if (!pointsOnly && resultMatch) {
             const success = Number(resultMatch[1]);
             const tasks = Number(resultMatch[2]);
             successTotal += success;
             taskTotal += tasks;
             row += ` = ${tasks === 0 ? 0 : Math.round((success * 100) / tasks)}%`;
         }
-        if (score) {
+        if (!pointsOnly && score) {
             row += `, Score: ${score}`;
         }
         if (duration) {

@@ -28,8 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class StatsService {
 
-    private static final String TACTICS_CHALLENGE_KEY = "tactics-challenge";
-
     private final DailyTrainingEntryRepository entryRepository;
     private final TrainingCategoryRepository categoryRepository;
     private final DailyNoteRepository noteRepository;
@@ -181,9 +179,9 @@ public class StatsService {
     }
 
     private CategoryStatViewModel toCategoryStat(TrainingCategory category, List<DailyTrainingEntry> entries) {
-        boolean challenge = TACTICS_CHALLENGE_KEY.equals(category.getKey());
-        int success = TrainingCalculator.totalSuccess(entries);
-        int total = TrainingCalculator.totalTasks(entries);
+        boolean challenge = TrainingCategoryRules.isPointsOnlyCategory(category);
+        int success = challenge ? 0 : TrainingCalculator.totalSuccess(entries);
+        int total = challenge ? 0 : TrainingCalculator.totalTasks(entries);
         DailyTrainingEntry best = bestEntry(entries, challenge);
         DailyTrainingEntry worst = worstEntry(entries, challenge);
         DailyTrainingEntry last = entries.stream().max(Comparator.comparing(DailyTrainingEntry::getTrainingDate)).orElse(null);
@@ -195,7 +193,7 @@ public class StatsService {
                 success,
                 total,
                 challenge,
-                best == null ? null : best.getSuccessCount(),
+                best == null ? null : TrainingCategoryRules.pointsValue(best),
                 latestAimchessRating(category.getKey()),
                 TrainingCalculator.successRate(success, total),
                 last == null ? null : last.getTrainingDate(),
@@ -209,14 +207,14 @@ public class StatsService {
 
     private DailyTrainingEntry bestEntry(List<DailyTrainingEntry> entries, boolean challenge) {
         return entries.stream()
-                .filter(entry -> entry.getTotalCount() > 0)
+                .filter(entry -> challenge ? TrainingCategoryRules.pointsValue(entry) != null : entry.getTotalCount() > 0)
                 .max(entryComparator(challenge))
                 .orElse(null);
     }
 
     private DailyTrainingEntry worstEntry(List<DailyTrainingEntry> entries, boolean challenge) {
         return entries.stream()
-                .filter(entry -> entry.getTotalCount() > 0)
+                .filter(entry -> challenge ? TrainingCategoryRules.pointsValue(entry) != null : entry.getTotalCount() > 0)
                 .min(entryComparator(challenge))
                 .orElse(null);
     }
@@ -224,15 +222,15 @@ public class StatsService {
     private Comparator<DailyTrainingEntry> entryComparator(boolean challenge) {
         if (challenge) {
             return Comparator
-                    .comparingInt(DailyTrainingEntry::getSuccessCount)
-                    .thenComparing(entry -> TrainingCalculator.successRate(entry.getSuccessCount(), entry.getTotalCount()));
+                    .comparingInt((DailyTrainingEntry entry) -> TrainingCategoryRules.pointsValue(entry))
+                    .thenComparing(DailyTrainingEntry::getTrainingDate);
         }
         return Comparator.comparing(entry -> TrainingCalculator.successRate(entry.getSuccessCount(), entry.getTotalCount()));
     }
 
     private Integer displayValue(DailyTrainingEntry entry, boolean challenge) {
         if (challenge) {
-            return entry.getSuccessCount();
+            return TrainingCategoryRules.pointsValue(entry);
         }
         return TrainingCalculator.successRate(entry.getSuccessCount(), entry.getTotalCount());
     }
@@ -262,7 +260,7 @@ public class StatsService {
 
     private String trend(List<DailyTrainingEntry> entries, boolean challenge) {
         List<DailyTrainingEntry> ordered = entries.stream()
-                .filter(entry -> entry.getTotalCount() > 0)
+                .filter(entry -> challenge ? TrainingCategoryRules.pointsValue(entry) != null : entry.getTotalCount() > 0)
                 .sorted(Comparator.comparing(DailyTrainingEntry::getTrainingDate))
                 .toList();
         if (ordered.size() < 2) {
@@ -282,7 +280,7 @@ public class StatsService {
 
     private int trendValue(DailyTrainingEntry entry, boolean challenge) {
         if (challenge) {
-            return entry.getSuccessCount();
+            return TrainingCategoryRules.pointsValue(entry);
         }
         return TrainingCalculator.successRate(entry.getSuccessCount(), entry.getTotalCount());
     }
