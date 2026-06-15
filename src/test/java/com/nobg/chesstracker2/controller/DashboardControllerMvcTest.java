@@ -3,6 +3,7 @@ package com.nobg.chesstracker2.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -496,12 +497,50 @@ class DashboardControllerMvcTest {
     }
 
     @Test
+    void weekRendersTacticsChallengeAsPointsCategory() throws Exception {
+        TrainingCategory tactics = tactics();
+        TrainingCategory challenge = tacticsChallenge();
+        saveEntry(LocalDate.of(2026, 6, 8), tactics, 3, 8, 12);
+        saveEntry(LocalDate.of(2026, 6, 8), challenge, 15, 18, 3);
+
+        MvcResult result = mockMvc.perform(get("/week/2026/24").with(user("norbert")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+        String challengeRow = tableRowContaining(html, "Tactics Challenge");
+
+        assertThat(html).contains("Wochenstatistik");
+        assertThat(challengeRow)
+                .contains("Tactics Challenge", "Punkte-Kategorie", "<td>-</td>")
+                .doesNotContain("15/18", "83%");
+    }
+
+    @Test
     void currentMonthRedirectUsesAppDateProvider() throws Exception {
         when(appDateProvider.currentMonth()).thenReturn(YearMonth.of(2027, 1));
 
         mockMvc.perform(get("/month"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/month/2027/1"));
+    }
+
+    @Test
+    void monthRendersTacticsChallengeAsPointsCategory() throws Exception {
+        TrainingCategory tactics = tactics();
+        TrainingCategory challenge = tacticsChallenge();
+        saveEntry(LocalDate.of(2026, 6, 8), tactics, 3, 8, 12);
+        saveEntry(LocalDate.of(2026, 6, 8), challenge, 15, 18, 3);
+
+        MvcResult result = mockMvc.perform(get("/month/2026/6").with(user("norbert")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+        String challengeRow = tableRowContaining(html, "Tactics Challenge");
+
+        assertThat(html).contains("Monatsstatistik");
+        assertThat(challengeRow)
+                .contains("Tactics Challenge", "Punkte-Kategorie", "<td>-</td>")
+                .doesNotContain("15/18", "83%");
     }
 
     @Test
@@ -660,6 +699,16 @@ class DashboardControllerMvcTest {
         entry.setCategory(category);
         entry.setScore(score);
         entryRepository.saveAndFlush(entry);
+    }
+
+    private String tableRowContaining(String html, String text) {
+        int textIndex = html.indexOf(text);
+        assertThat(textIndex).isNotNegative();
+        int rowStart = html.lastIndexOf("<tr", textIndex);
+        int rowEnd = html.indexOf("</tr>", textIndex);
+        assertThat(rowStart).isNotNegative();
+        assertThat(rowEnd).isNotNegative();
+        return html.substring(rowStart, rowEnd + "</tr>".length());
     }
 
     private RatingSnapshot snapshot(
