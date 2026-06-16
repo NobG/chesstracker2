@@ -30,6 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.env.Environment;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -95,6 +97,9 @@ class DashboardControllerMvcTest {
     @Autowired
     private MotivationQuoteService quoteService;
 
+    @Autowired
+    private Environment environment;
+
     @MockBean
     private AppDateProvider appDateProvider;
 
@@ -127,10 +132,45 @@ class DashboardControllerMvcTest {
     void postTodayEntriesWithoutCsrfIsRejected() throws Exception {
         TrainingCategory tactics = tactics();
 
-        mockMvc.perform(post("/today/entries")
+        MvcResult result = mockMvc.perform(post("/today/entries")
+                        .accept(MediaType.TEXT_HTML)
                         .param("entries[0].categoryId", tactics.getId().toString())
                         .param("entries[0].trained", "true"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andReturn();
+
+        String html = result.getResponse().getContentAsString();
+        assertThat(html)
+                .contains(
+                        "Deine Sitzung ist abgelaufen oder die Aktion wurde blockiert.",
+                        "Zur Anmeldung",
+                        "Zur heutigen Trainingseite"
+                )
+                .doesNotContain("Whitelabel Error Page");
+    }
+
+    @Test
+    void errorPageRendersForbiddenWithoutWhitelabel() throws Exception {
+        MvcResult result = mockMvc.perform(get("/error")
+                        .accept(MediaType.TEXT_HTML)
+                        .requestAttr("jakarta.servlet.error.status_code", 403))
+                .andExpect(status().isForbidden())
+                .andReturn();
+
+        String html = result.getResponse().getContentAsString();
+        assertThat(html)
+                .contains(
+                        "Sitzung abgelaufen - chesstracker2",
+                        "Deine Sitzung ist abgelaufen oder die Aktion wurde blockiert.",
+                        "href=\"/login\"",
+                        "href=\"/today\""
+                )
+                .doesNotContain("Whitelabel Error Page");
+    }
+
+    @Test
+    void sessionTimeoutDefaultsToTwelveHours() {
+        assertThat(environment.getProperty("server.servlet.session.timeout")).isEqualTo("12h");
     }
 
     @Test
@@ -193,8 +233,12 @@ class DashboardControllerMvcTest {
 
         assertThat(html).contains(
                 "chesstracker2.trainingPlan.${trainingPlanGrid.dataset.trainingDate}",
+                "chesstracker2.trainingDraft.${trainingPlanGrid.dataset.trainingDate}",
                 "localStorage.getItem(key)",
                 "localStorage.setItem(key, JSON.stringify(plan))",
+                "localStorage.setItem(key, JSON.stringify({ fields }))",
+                "localStorage.removeItem(key)",
+                "initializeTrainingDraft()",
                 "trainingPlanGrid.appendChild(card)",
                 "querySelectorAll('.entry-card')",
                 "card.classList.toggle('is-planned-today', planned)",

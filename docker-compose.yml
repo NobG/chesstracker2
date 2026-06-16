@@ -12,6 +12,7 @@ services:
       TZ: Europe/Berlin
       JAVA_TOOL_OPTIONS: "-Duser.timezone=Europe/Berlin"
       SERVER_PORT: 8080
+      SERVER_SERVLET_SESSION_TIMEOUT: ${SERVER_SERVLET_SESSION_TIMEOUT:-12h}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://chesstracker2-db:5432/chesstracker2}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-chesstracker2}

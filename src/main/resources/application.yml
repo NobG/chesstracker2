@@ -1,6 +1,9 @@
 server:
   port: ${SERVER_PORT:8080}
   forward-headers-strategy: framework
+  servlet:
+    session:
+      timeout: ${SERVER_SERVLET_SESSION_TIMEOUT:12h}
   tomcat:
     use-relative-redirects: true
 

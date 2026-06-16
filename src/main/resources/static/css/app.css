@@ -661,6 +661,32 @@ button {
     border: 1px solid rgba(224, 111, 111, 0.45);
 }
 
+.error-page {
+    align-items: center;
+    display: grid;
+    min-height: 100vh;
+}
+
+.error-panel {
+    background: linear-gradient(145deg, rgba(32, 28, 22, 0.98), rgba(23, 21, 17, 0.98));
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--wood-shadow-strong);
+    max-width: 760px;
+    padding: clamp(24px, 5vw, 42px);
+}
+
+.error-panel h1 {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+}
+
+.error-panel .primary-button,
+.error-panel .secondary-button {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+}
+
 .status-line {
     border: 1px solid var(--line);
     border-radius: 6px;

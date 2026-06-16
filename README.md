@@ -101,6 +101,7 @@ export SPRING_DATASOURCE_USERNAME=chesstracker2
 export SPRING_DATASOURCE_PASSWORD=change-me
 export CHESSTRACKER2_AUTH_USER='norbert'
 export CHESSTRACKER2_AUTH_PASSWORD='ein-starkes-passwort'
+export SERVER_SERVLET_SESSION_TIMEOUT=12h
 ./mvnw spring-boot:run
 ```
 
@@ -133,6 +134,7 @@ Die zentrale Konfiguration liegt in `src/main/resources/application.yml`.
 Wichtige Umgebungsvariablen:
 
 - `SERVER_PORT`
+- `SERVER_SERVLET_SESSION_TIMEOUT` (Standard: `12h`)
 - `SPRING_DATASOURCE_URL`
 - `SPRING_DATASOURCE_USERNAME`
 - `SPRING_DATASOURCE_PASSWORD`

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Sitzung abgelaufen')}"></head>
+<body>
+<main class="shell error-page">
+    <section class="error-panel">
+        <p class="eyebrow">Zug blockiert</p>
+        <h1>Deine Sitzung ist abgelaufen oder die Aktion wurde blockiert.</h1>
+        <p>Bitte melde dich neu an und versuche es erneut. Bereits eingegebene Trainingsdaten werden auf der heutigen Trainingseite nach Moeglichkeit aus dem Browser-Draft wiederhergestellt.</p>
+        <div class="button-row">
+            <a class="primary-button" th:href="@{/login}">Zur Anmeldung</a>
+            <a class="secondary-button" th:href="@{/today}">Zur heutigen Trainingseite</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

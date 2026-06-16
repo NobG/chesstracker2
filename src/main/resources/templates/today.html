@@ -36,7 +36,8 @@
         </article>
     </section>
 
-    <form id="training-form" class="training-form" method="post" th:action="${saveAction}" th:object="${form}">
+    <form id="training-form" class="training-form" method="post" th:action="${saveAction}" th:object="${form}"
+          th:attr="data-save-success=${successMessage != null}">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         <section class="entry-grid" data-training-plan-grid th:attr="data-training-date=${view.date}">
             <article class="entry-card" th:classappend="${entry.workedToday()} ? ' is-worked-today'"
@@ -143,6 +144,83 @@ const completeDialog = document.querySelector('[data-complete-dialog]');
 const completeSummary = document.querySelector('[data-complete-summary]');
 const trainingForm = document.getElementById('training-form');
 const trainingPlanGrid = document.querySelector('[data-training-plan-grid]');
+
+function trainingDraftStorageKey() {
+    return trainingPlanGrid?.dataset.trainingDate
+        ? `chesstracker2.trainingDraft.${trainingPlanGrid.dataset.trainingDate}`
+        : null;
+}
+
+function writableTrainingFields() {
+    if (!trainingForm) {
+        return [];
+    }
+    return Array.from(trainingForm.elements).filter((field) => {
+        return field.name && !field.disabled && !field.readOnly && field.type !== 'hidden';
+    });
+}
+
+function readTrainingDraft() {
+    const key = trainingDraftStorageKey();
+    if (!key) {
+        return null;
+    }
+    try {
+        const draft = JSON.parse(localStorage.getItem(key) || 'null');
+        return draft && typeof draft === 'object' ? draft : null;
+    } catch {
+        return null;
+    }
+}
+
+function writeTrainingDraft() {
+    const key = trainingDraftStorageKey();
+    if (!key) {
+        return;
+    }
+    const fields = {};
+    writableTrainingFields().forEach((field) => {
+        fields[field.name] = field.type === 'checkbox' ? field.checked : field.value;
+    });
+    localStorage.setItem(key, JSON.stringify({ fields }));
+}
+
+function clearTrainingDraft() {
+    const key = trainingDraftStorageKey();
+    if (key) {
+        localStorage.removeItem(key);
+    }
+}
+
+function restoreTrainingDraft() {
+    const draft = readTrainingDraft();
+    if (!draft?.fields) {
+        return;
+    }
+    writableTrainingFields().forEach((field) => {
+        if (!Object.prototype.hasOwnProperty.call(draft.fields, field.name)) {
+            return;
+        }
+        if (field.type === 'checkbox') {
+            field.checked = Boolean(draft.fields[field.name]);
+        } else {
+            field.value = draft.fields[field.name] ?? '';
+        }
+    });
+}
+
+function initializeTrainingDraft() {
+    if (!trainingForm) {
+        return;
+    }
+    if (trainingForm.dataset.saveSuccess === 'true') {
+        clearTrainingDraft();
+    } else {
+        restoreTrainingDraft();
+    }
+    trainingForm.addEventListener('input', writeTrainingDraft);
+    trainingForm.addEventListener('change', writeTrainingDraft);
+}
 
 function trainingPlanStorageKey() {
     return trainingPlanGrid?.dataset.trainingDate
@@ -251,6 +329,7 @@ function initializeTrainingPlan() {
 }
 
 initializeTrainingPlan();
+initializeTrainingDraft();
 
 function fieldValue(card, suffix) {
     const field = card.querySelector(`[name$=".${suffix}"]`);
