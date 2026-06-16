@@ -25,7 +25,7 @@ public class RatingSnapshotService {
 
     @Transactional(readOnly = true)
     public RatingSnapshotViewModel ratingView() {
-        List<RatingSnapshot> snapshots = repository.findAllByOrderBySnapshotDateDesc();
+        List<RatingSnapshot> snapshots = repository.findAllByOrderBySnapshotDateDescUpdatedAtDescIdDesc();
         return new RatingSnapshotViewModel(
                 prefilledForm(snapshots),
                 snapshots.stream().map(this::toRow).toList(),
@@ -35,7 +35,7 @@ public class RatingSnapshotService {
 
     @Transactional(readOnly = true)
     public RatingSnapshotForm prefilledForm() {
-        return prefilledForm(repository.findAllByOrderBySnapshotDateDesc());
+        return prefilledForm(repository.findAllByOrderBySnapshotDateDescUpdatedAtDescIdDesc());
     }
 
     @Transactional

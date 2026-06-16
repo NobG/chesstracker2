@@ -133,6 +133,7 @@
                             <span class="hero-rating-label" th:text="${rating.label()}">Lichess Blitz</span>
                             <strong class="hero-rating-value" th:text="${rating.value()}">1850</strong>
                             <span class="rating-change"
+                                  th:if="${rating.changeTone() != 'none'}"
                                   th:classappend="' rating-change--' + ${rating.changeTone()}"
                                   th:text="${rating.formattedChange()}">+10</span>
                         </div>
@@ -143,6 +144,7 @@
                             <span class="hero-rating-label" th:text="${rating.label()}">Tactics</span>
                             <strong class="hero-rating-value" th:text="${rating.value()}">1958</strong>
                             <span class="rating-change"
+                                  th:if="${rating.changeTone() != 'none'}"
                                   th:classappend="' rating-change--' + ${rating.changeTone()}"
                                   th:text="${rating.formattedChange()}">+13</span>
                         </div>

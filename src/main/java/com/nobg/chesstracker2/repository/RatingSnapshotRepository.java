@@ -10,5 +10,5 @@ public interface RatingSnapshotRepository extends JpaRepository<RatingSnapshot, 
 
     Optional<RatingSnapshot> findBySnapshotDate(LocalDate snapshotDate);
 
-    List<RatingSnapshot> findAllByOrderBySnapshotDateDesc();
+    List<RatingSnapshot> findAllByOrderBySnapshotDateDescUpdatedAtDescIdDesc();
 }

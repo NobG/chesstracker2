@@ -56,7 +56,7 @@ class RatingSnapshotServiceTest {
     void ratingViewCalculatesChangesAndIgnoresMissingValues() {
         RatingSnapshot current = snapshot(LocalDate.of(2026, 6, 8), 1825, null, null, 1718, null, null);
         RatingSnapshot previous = snapshot(LocalDate.of(2026, 6, 1), 1800, 1900, null, 1700, null, null);
-        when(repository.findAllByOrderBySnapshotDateDesc()).thenReturn(List.of(current, previous));
+        when(repository.findAllByOrderBySnapshotDateDescUpdatedAtDescIdDesc()).thenReturn(List.of(current, previous));
         when(appDateProvider.today()).thenReturn(LocalDate.of(2026, 6, 9));
 
         RatingSnapshotViewModel view = service.ratingView();
@@ -73,7 +73,7 @@ class RatingSnapshotServiceTest {
         LocalDate today = LocalDate.of(2026, 6, 9);
         RatingSnapshot latest = snapshot(LocalDate.of(2026, 6, 1), 1643, 1624, 1760, 1627, 1670, "Old note");
         when(appDateProvider.today()).thenReturn(today);
-        when(repository.findAllByOrderBySnapshotDateDesc()).thenReturn(List.of(latest));
+        when(repository.findAllByOrderBySnapshotDateDescUpdatedAtDescIdDesc()).thenReturn(List.of(latest));
 
         RatingSnapshotForm form = service.prefilledForm();
 
@@ -92,7 +92,7 @@ class RatingSnapshotServiceTest {
         RatingSnapshot todaySnapshot = snapshot(today, 1650, 1625, 1761, 1628, 1671, "Today note");
         RatingSnapshot older = snapshot(LocalDate.of(2026, 6, 1), 1643, 1624, 1760, 1627, 1670, "Old note");
         when(appDateProvider.today()).thenReturn(today);
-        when(repository.findAllByOrderBySnapshotDateDesc()).thenReturn(List.of(todaySnapshot, older));
+        when(repository.findAllByOrderBySnapshotDateDescUpdatedAtDescIdDesc()).thenReturn(List.of(todaySnapshot, older));
 
         RatingSnapshotForm form = service.prefilledForm();
 
@@ -109,7 +109,7 @@ class RatingSnapshotServiceTest {
     void prefilledFormUsesTodayWithEmptyRatingsWhenNoSnapshotsExist() {
         LocalDate today = LocalDate.of(2026, 6, 9);
         when(appDateProvider.today()).thenReturn(today);
-        when(repository.findAllByOrderBySnapshotDateDesc()).thenReturn(List.of());
+        when(repository.findAllByOrderBySnapshotDateDescUpdatedAtDescIdDesc()).thenReturn(List.of());
 
         RatingSnapshotForm form = service.prefilledForm();
 

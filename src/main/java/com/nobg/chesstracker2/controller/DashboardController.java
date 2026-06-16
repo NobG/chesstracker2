@@ -5,8 +5,11 @@ import com.nobg.chesstracker2.service.AppDateProvider;
 import com.nobg.chesstracker2.service.DashboardRatingSummaryService;
 import com.nobg.chesstracker2.service.StatsService;
 import com.nobg.chesstracker2.service.TrainingEntryService;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.temporal.IsoFields;
+import java.time.temporal.TemporalAdjusters;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,13 +45,14 @@ public class DashboardController {
 
     @GetMapping("/today")
     public String today(Model model) {
-        var view = trainingEntryService.todayView(appDateProvider.today());
+        LocalDate today = appDateProvider.today();
+        var view = trainingEntryService.todayView(today);
         model.addAttribute("pageTitle", "Heute");
         model.addAttribute("saveAction", "/today/entries");
         model.addAttribute("completeAction", "/today/complete");
         model.addAttribute("view", view);
         model.addAttribute("form", view.form());
-        model.addAttribute("ratingSummary", ratingSummaryService.latestSummary());
+        model.addAttribute("ratingSummary", ratingSummaryService.forToday(today));
         return "today";
     }
 
@@ -90,6 +94,7 @@ public class DashboardController {
         model.addAttribute("completeAction", "/day/" + date + "/complete");
         model.addAttribute("view", view);
         model.addAttribute("form", view.form());
+        model.addAttribute("ratingSummary", ratingSummaryService.latestSummary());
         return "today";
     }
 
@@ -130,8 +135,13 @@ public class DashboardController {
 
     @GetMapping("/week/{year}/{week}")
     public String week(@PathVariable int year, @PathVariable int week, Model model) {
+        LocalDate start = LocalDate.of(year, 1, 4)
+                .with(IsoFields.WEEK_BASED_YEAR, year)
+                .with(IsoFields.WEEK_OF_WEEK_BASED_YEAR, week)
+                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         model.addAttribute("pageTitle", "Woche " + week);
         model.addAttribute("stats", statsService.weekStats(year, week));
+        model.addAttribute("ratingSummary", ratingSummaryService.forWeek(start, start.plusDays(6)));
         return "week";
     }
 
@@ -143,8 +153,10 @@ public class DashboardController {
 
     @GetMapping("/month/{year}/{month}")
     public String month(@PathVariable int year, @PathVariable int month, Model model) {
+        YearMonth yearMonth = YearMonth.of(year, month);
         model.addAttribute("pageTitle", "Monat " + month + "/" + year);
         model.addAttribute("stats", statsService.monthStats(year, month));
+        model.addAttribute("ratingSummary", ratingSummaryService.forMonth(yearMonth.atDay(1), yearMonth.atEndOfMonth()));
         return "month";
     }
 
@@ -152,6 +164,7 @@ public class DashboardController {
     public String categories(Model model) {
         model.addAttribute("pageTitle", "Kategorien");
         model.addAttribute("categories", statsService.categoryOverview());
+        model.addAttribute("ratingSummary", ratingSummaryService.latestSummary());
         return "categories";
     }
 }

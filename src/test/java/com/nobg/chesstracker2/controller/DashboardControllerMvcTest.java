@@ -356,28 +356,23 @@ class DashboardControllerMvcTest {
                 "Schachratings",
                 "Lichess Blitz",
                 "1850",
-                "+150",
                 "Lichess Rapid",
                 "1780",
-                "+130",
                 "Lichess Classical",
                 "1600",
-                "neu",
                 "DWZ",
                 "1450",
-                "+50",
                 "FIDE Elo",
                 "1500",
                 "Aimchess Ratings",
                 "Tactics",
                 "2200",
-                "+100",
+                "+100 seit gestern",
                 "Endgame",
-                "1588",
-                "neu"
+                "1588"
         );
         assertThat(html)
-                .doesNotContain(">null<", "Noch keine Ratings erfasst.");
+                .doesNotContain(">null<", "Noch keine Ratings erfasst.", "+150", "+130", "+50");
     }
 
     @Test
@@ -420,12 +415,11 @@ class DashboardControllerMvcTest {
                 "Aimchess Ratings",
                 "Tactics",
                 "2215",
-                "+115",
+                "+115 seit gestern",
                 "Endgame",
-                "1588",
-                "+88"
+                "1588"
         );
-        assertThat(html).doesNotContain("2100", "1500", ">null<");
+        assertThat(html).doesNotContain("2100", "1500", ">null<", "+88");
     }
 
     @Test
@@ -442,25 +436,40 @@ class DashboardControllerMvcTest {
                 "Schachratings",
                 "Lichess Blitz",
                 "1850",
-                "+10",
+                "+10 seit gestern",
                 "rating-change--positive",
                 "Lichess Rapid",
                 "1785",
-                "-8",
+                "-8 seit gestern",
                 "rating-change--negative",
                 "DWZ",
                 "1450",
-                "+/-0",
+                "+/-0 seit gestern",
                 "rating-change--neutral"
         );
     }
 
     @Test
+    void todayDoesNotShowHistoricalChangeWhenNoValueWasCapturedToday() throws Exception {
+        saveScore(LocalDate.of(2026, 6, 14), tactics(), 1945);
+        saveScore(LocalDate.of(2026, 6, 15), tactics(), 1958);
+
+        MvcResult result = mockMvc.perform(get("/today"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+        String aimchessRatings = sectionContaining(html, "Aimchess Ratings");
+
+        assertThat(aimchessRatings).contains("Tactics", "1958");
+        assertThat(aimchessRatings).doesNotContain("+13", "seit gestern", "rating-change--positive");
+    }
+
+    @Test
     void todaySkipsNullAimchessScoresWhenCalculatingPreviousChange() throws Exception {
         TrainingCategory tactics = tactics();
-        saveScore(LocalDate.of(2026, 6, 12), tactics, 1994);
-        saveScore(LocalDate.of(2026, 6, 13), tactics, null);
-        saveScore(LocalDate.of(2026, 6, 15), tactics, 1958);
+        saveScore(LocalDate.of(2026, 6, 6), tactics, 1994);
+        saveScore(LocalDate.of(2026, 6, 8), tactics, null);
+        saveScore(APP_TODAY, tactics, 1958);
 
         MvcResult result = mockMvc.perform(get("/today"))
                 .andExpect(status().isOk())
@@ -471,7 +480,7 @@ class DashboardControllerMvcTest {
                 "Aimchess Ratings",
                 "Tactics",
                 "1958",
-                "-36",
+                "-36 seit gestern",
                 "rating-change--negative"
         );
         assertThat(html).doesNotContain(">1994<");
@@ -496,6 +505,82 @@ class DashboardControllerMvcTest {
         );
         assertThat(aimchessRatings).doesNotContain("Tactics Challenge", "38");
         assertThat(html).contains("Tactics Challenge", "data-points-only=\"true\"");
+    }
+
+    @Test
+    void weekShowsRatingChangesWithinIsoWeekOnly() throws Exception {
+        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 6, 14), 1840, null, null, null, null));
+        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 6, 16), 1855, null, null, null, null));
+        saveScore(LocalDate.of(2026, 6, 14), tactics(), 1945);
+        saveScore(LocalDate.of(2026, 6, 16), tactics(), 1958);
+
+        MvcResult result = mockMvc.perform(get("/week/2026/25").with(user("norbert")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(
+                "KW 25",
+                "Lichess Blitz",
+                "1855",
+                "+15 diese Woche",
+                "Tactics",
+                "1958",
+                "+13 diese Woche"
+        );
+    }
+
+    @Test
+    void weekDoesNotShowHistoricalChangeWhenWeekHasNoNewValue() throws Exception {
+        saveScore(LocalDate.of(2026, 6, 14), tactics(), 1945);
+        saveScore(LocalDate.of(2026, 6, 15), tactics(), 1958);
+
+        MvcResult result = mockMvc.perform(get("/week/2026/26").with(user("norbert")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+        String aimchessRatings = sectionContaining(html, "Aimchess Ratings");
+
+        assertThat(aimchessRatings).contains("Tactics", "1958");
+        assertThat(aimchessRatings).doesNotContain("+13", "diese Woche", "rating-change--positive");
+    }
+
+    @Test
+    void monthShowsRatingChangesWithinMonthOnly() throws Exception {
+        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 5, 31), 1800, null, null, null, null));
+        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 6, 16), 1858, null, null, null, null));
+        saveScore(LocalDate.of(2026, 5, 31), tactics(), 1900);
+        saveScore(LocalDate.of(2026, 6, 16), tactics(), 1958);
+
+        MvcResult result = mockMvc.perform(get("/month/2026/6").with(user("norbert")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(
+                "6/2026",
+                "Lichess Blitz",
+                "1858",
+                "+58 diesen Monat",
+                "Tactics",
+                "1958",
+                "+58 diesen Monat"
+        );
+    }
+
+    @Test
+    void monthDoesNotShowHistoricalChangeWhenMonthHasNoNewValue() throws Exception {
+        saveScore(LocalDate.of(2026, 5, 30), tactics(), 1900);
+        saveScore(LocalDate.of(2026, 5, 31), tactics(), 1958);
+
+        MvcResult result = mockMvc.perform(get("/month/2026/6").with(user("norbert")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+        String aimchessRatings = sectionContaining(html, "Aimchess Ratings");
+
+        assertThat(aimchessRatings).contains("Tactics", "1958");
+        assertThat(aimchessRatings).doesNotContain("+58", "diesen Monat", "rating-change--positive");
     }
 
     @Test
