@@ -185,6 +185,7 @@ public class StatsService {
         DailyTrainingEntry best = bestEntry(entries, challenge);
         DailyTrainingEntry worst = worstEntry(entries, challenge);
         DailyTrainingEntry last = entries.stream().max(Comparator.comparing(DailyTrainingEntry::getTrainingDate)).orElse(null);
+        RatingProgress ratingProgress = ratingProgress(category, challenge);
         return new CategoryStatViewModel(
                 category.getName(),
                 CategoryIconMapper.iconKeyFor(category.getKey()),
@@ -194,7 +195,12 @@ public class StatsService {
                 total,
                 challenge,
                 best == null ? null : TrainingCategoryRules.pointsValue(best),
-                latestAimchessRating(category.getKey()),
+                ratingProgress.currentValue(),
+                ratingProgress.startValue(),
+                ratingProgress.changeSinceStart(),
+                ratingProgress.formattedChangeSinceStart(),
+                ratingProgress.changeTone(),
+                ratingProgress.ratingCategory(),
                 TrainingCalculator.successRate(success, total),
                 last == null ? null : last.getTrainingDate(),
                 best == null ? null : best.getTrainingDate(),
@@ -203,6 +209,22 @@ public class StatsService {
                 worst == null ? null : displayValue(worst, challenge),
                 trend(entries, challenge)
         );
+    }
+
+    private RatingProgress ratingProgress(TrainingCategory category, boolean challenge) {
+        if (challenge) {
+            return RatingProgress.empty();
+        }
+        DailyTrainingEntry latest = entryRepository
+                .findFirstByCategoryIdAndScoreIsNotNullOrderByTrainingDateDescUpdatedAtDescIdDesc(category.getId())
+                .orElse(null);
+        if (latest == null) {
+            return RatingProgress.empty();
+        }
+        DailyTrainingEntry start = entryRepository
+                .findFirstByCategoryIdAndScoreIsNotNullOrderByTrainingDateAscUpdatedAtAscIdAsc(category.getId())
+                .orElse(latest);
+        return RatingProgress.of(start.getScore(), latest.getScore(), latest.getId().equals(start.getId()));
     }
 
     private DailyTrainingEntry bestEntry(List<DailyTrainingEntry> entries, boolean challenge) {
@@ -233,13 +255,6 @@ public class StatsService {
             return TrainingCategoryRules.pointsValue(entry);
         }
         return TrainingCalculator.successRate(entry.getSuccessCount(), entry.getTotalCount());
-    }
-
-    private Integer latestAimchessRating(String categoryKey) {
-        return entryRepository
-                .findFirstByCategory_KeyAndScoreIsNotNullOrderByTrainingDateDescUpdatedAtDescIdDesc(categoryKey)
-                .map(DailyTrainingEntry::getScore)
-                .orElse(null);
     }
 
     private String bestCategory(List<CategoryStatViewModel> categories) {
@@ -290,5 +305,29 @@ public class StatsService {
     }
 
     private record StatusCounts(int completed, int partial, int openWithEntries) {
+    }
+
+    private record RatingProgress(
+            Integer startValue,
+            Integer currentValue,
+            Integer changeSinceStart,
+            String formattedChangeSinceStart,
+            String changeTone,
+            boolean ratingCategory
+    ) {
+
+        static RatingProgress empty() {
+            return new RatingProgress(null, null, null, "-", "none", false);
+        }
+
+        static RatingProgress of(Integer startValue, Integer currentValue, boolean singleValue) {
+            if (singleValue) {
+                return new RatingProgress(startValue, currentValue, null, "neu", "new", true);
+            }
+            int difference = currentValue - startValue;
+            String formatted = (difference == 0 ? "+/-0" : difference > 0 ? "+" + difference : String.valueOf(difference)) + " seit Start";
+            String tone = difference > 0 ? "positive" : difference < 0 ? "negative" : "neutral";
+            return new RatingProgress(startValue, currentValue, difference, formatted, tone, true);
+        }
     }
 }

@@ -30,6 +30,13 @@
                 <p><span>Aufgaben</span><strong th:text="${category.successCount()} + '/' + ${category.totalCount()}">0/0</strong></p>
                 <p th:if="${category.challenge()}"><span>Challenge-Bestwert</span><strong th:text="${category.challengeBestSolved() == null ? '-' : category.challengeBestSolved() + ' geloest'}">-</strong></p>
                 <p><span>Aktuelles Rating</span><strong th:text="${category.currentRating() == null ? '-' : category.currentRating()}">-</strong></p>
+                <p th:if="${category.ratingCategory()}"><span>Start-Rating</span><strong th:text="${category.startRating()}">-</strong></p>
+                <p th:if="${category.ratingCategory()}">
+                    <span>Entwicklung</span>
+                    <strong class="rating-change"
+                            th:classappend="' rating-change--' + ${category.ratingChangeTone()}"
+                            th:text="${category.formattedRatingChangeSinceStart()}">+13 seit Start</strong>
+                </p>
                 <p><span>Letzter Eintrag</span><strong th:text="${category.lastEntryDate() == null ? '-' : category.lastEntryDate()}">-</strong></p>
                 <p><span>Bester Tag</span><strong th:text="${category.bestDay() == null ? '-' : category.bestDay() + ' (' + category.bestDayRate() + (category.challenge() ? ' geloest)' : '%)')}">-</strong></p>
                 <p><span>Schwaechster Tag</span><strong th:text="${category.worstDay() == null ? '-' : category.worstDay() + ' (' + category.worstDayRate() + (category.challenge() ? ' geloest)' : '%)')}">-</strong></p>

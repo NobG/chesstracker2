@@ -647,9 +647,73 @@ class DashboardControllerMvcTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String html = result.getResponse().getContentAsString();
+        String tacticsCard = cardContaining(html, "Tactics");
 
-        assertThat(html).contains("Aktuelles Rating", "2215");
-        assertThat(html).doesNotContain("2100");
+        assertThat(tacticsCard).contains(
+                "Aktuelles Rating",
+                "2215",
+                "Start-Rating",
+                "2100",
+                "Entwicklung",
+                "+115 seit Start",
+                "rating-change--positive"
+        );
+    }
+
+    @Test
+    void categoriesShowNegativeRatingProgressSinceStart() throws Exception {
+        TrainingCategory endgame = endgame();
+        saveScore(LocalDate.of(2026, 6, 5), endgame, 1950);
+        saveScore(APP_TODAY, endgame, 1930);
+
+        MvcResult result = mockMvc.perform(get("/categories"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+        String endgameCard = cardContaining(html, "Endgame");
+
+        assertThat(endgameCard).contains(
+                "Aktuelles Rating",
+                "1930",
+                "Start-Rating",
+                "1950",
+                "-20 seit Start",
+                "rating-change--negative"
+        );
+    }
+
+    @Test
+    void categoriesShowNewForSingleAimchessRating() throws Exception {
+        saveScore(APP_TODAY, defender(), 1922);
+
+        MvcResult result = mockMvc.perform(get("/categories"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+        String defenderCard = cardContaining(html, "Defender");
+
+        assertThat(defenderCard).contains(
+                "Aktuelles Rating",
+                "1922",
+                "Start-Rating",
+                "1922",
+                "Entwicklung",
+                "neu",
+                "rating-change--new"
+        );
+    }
+
+    @Test
+    void categoriesWithoutScoreDoNotShowRatingProgress() throws Exception {
+        MvcResult result = mockMvc.perform(get("/categories"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+        String tacticsCard = cardContaining(html, "Tactics");
+
+        assertThat(tacticsCard)
+                .contains("Aktuelles Rating", ">-</strong>")
+                .doesNotContain("Start-Rating", "Entwicklung", "rating-change--");
     }
 
     @Test
@@ -673,6 +737,8 @@ class DashboardControllerMvcTest {
                 "(38 geloest)",
                 "Trend: steigend"
         );
+        String challengeCard = cardContaining(html, "Tactics Challenge");
+        assertThat(challengeCard).doesNotContain("Start-Rating", "Entwicklung", "rating-change--");
     }
 
     @Test
@@ -927,6 +993,18 @@ class DashboardControllerMvcTest {
         assertThat(sectionStart).isNotNegative();
         assertThat(sectionEnd).isNotNegative();
         return html.substring(sectionStart, sectionEnd);
+    }
+
+    private String cardContaining(String html, String text) {
+        int gridStart = html.indexOf("<section class=\"entry-grid\">");
+        assertThat(gridStart).isNotNegative();
+        int textIndex = html.indexOf(text, gridStart);
+        assertThat(textIndex).isNotNegative();
+        int cardStart = html.lastIndexOf("<article class=\"entry-card\"", textIndex);
+        int cardEnd = html.indexOf("</article>", textIndex);
+        assertThat(cardStart).isNotNegative();
+        assertThat(cardEnd).isNotNegative();
+        return html.substring(cardStart, cardEnd + "</article>".length());
     }
 
     private RatingSnapshot snapshot(
