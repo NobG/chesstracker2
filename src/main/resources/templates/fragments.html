@@ -127,41 +127,24 @@
                     <a class="rating-strip__link" href="/rating">Rating eintragen</a>
                 </div>
                 <div class="hero-rating-groups" th:if="${ratingSummary.hasAnyRating()}">
-                    <div class="hero-rating-group">
-                        <p class="hero-rating-group-title">Online</p>
-                        <div class="hero-rating-row">
-                            <span class="hero-rating-label">Blitz</span>
-                            <strong class="hero-rating-value" th:text="${ratingSummary.lichessBlitz() == null ? '-' : ratingSummary.lichessBlitz()}">1850</strong>
-                        </div>
-                        <div class="hero-rating-row">
-                            <span class="hero-rating-label">Rapid</span>
-                            <strong class="hero-rating-value" th:text="${ratingSummary.lichessRapid() == null ? '-' : ratingSummary.lichessRapid()}">1780</strong>
-                        </div>
-                        <div class="hero-rating-row">
-                            <span class="hero-rating-label">Classical</span>
-                            <strong class="hero-rating-value" th:text="${ratingSummary.lichessClassical() == null ? '-' : ratingSummary.lichessClassical()}">-</strong>
+                    <div class="hero-rating-group" th:if="${!ratingSummary.manualRatings().isEmpty()}">
+                        <p class="hero-rating-group-title">Schachratings</p>
+                        <div class="hero-rating-row" th:each="rating : ${ratingSummary.manualRatings()}">
+                            <span class="hero-rating-label" th:text="${rating.label()}">Lichess Blitz</span>
+                            <strong class="hero-rating-value" th:text="${rating.value()}">1850</strong>
+                            <span class="rating-change"
+                                  th:classappend="' rating-change--' + ${rating.changeTone()}"
+                                  th:text="${rating.formattedChange()}">+10</span>
                         </div>
                     </div>
-                    <div class="hero-rating-group">
-                        <p class="hero-rating-group-title">Offiziell</p>
-                        <div class="hero-rating-row">
-                            <span class="hero-rating-label">DWZ</span>
-                            <strong class="hero-rating-value" th:text="${ratingSummary.dwz() == null ? '-' : ratingSummary.dwz()}">1450</strong>
-                        </div>
-                        <div class="hero-rating-row">
-                            <span class="hero-rating-label">FIDE</span>
-                            <strong class="hero-rating-value" th:text="${ratingSummary.fideElo() == null ? '-' : ratingSummary.fideElo()}">-</strong>
-                        </div>
-                    </div>
-                    <div class="hero-rating-group">
-                        <p class="hero-rating-group-title">Training</p>
-                        <div class="hero-rating-row">
-                            <span class="hero-rating-label">Taktik</span>
-                            <strong class="hero-rating-value" th:text="${ratingSummary.tacticsScore() == null ? '-' : ratingSummary.tacticsScore()}">-</strong>
-                        </div>
-                        <div class="hero-rating-row">
-                            <span class="hero-rating-label">Endspiel</span>
-                            <strong class="hero-rating-value" th:text="${ratingSummary.endgameScore() == null ? '-' : ratingSummary.endgameScore()}">-</strong>
+                    <div class="hero-rating-group hero-rating-group--wide" th:if="${!ratingSummary.aimchessRatings().isEmpty()}">
+                        <p class="hero-rating-group-title">Aimchess Ratings</p>
+                        <div class="hero-rating-row" th:each="rating : ${ratingSummary.aimchessRatings()}">
+                            <span class="hero-rating-label" th:text="${rating.label()}">Tactics</span>
+                            <strong class="hero-rating-value" th:text="${rating.value()}">1958</strong>
+                            <span class="rating-change"
+                                  th:classappend="' rating-change--' + ${rating.changeTone()}"
+                                  th:text="${rating.formattedChange()}">+13</span>
                         </div>
                     </div>
                 </div>

@@ -261,7 +261,7 @@ a {
 .hero-rating-groups {
     display: grid;
     gap: 12px;
-    grid-template-columns: repeat(3, minmax(118px, 1fr));
+    grid-template-columns: minmax(180px, 0.86fr) minmax(220px, 1.14fr);
 }
 
 .hero-rating-group {
@@ -286,8 +286,7 @@ a {
     align-items: baseline;
     display: grid;
     gap: 8px;
-    grid-template-columns: minmax(68px, max-content) minmax(34px, max-content);
-    justify-content: start;
+    grid-template-columns: minmax(96px, 1fr) minmax(34px, max-content) minmax(42px, max-content);
     min-width: 0;
 }
 
@@ -299,6 +298,37 @@ a {
 .hero-rating-value {
     color: var(--text);
     font-size: 1rem;
+}
+
+.rating-change {
+    border: 1px solid rgba(242, 234, 220, 0.12);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1;
+    padding: 4px 7px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.rating-change--positive {
+    background: rgba(127, 159, 110, 0.16);
+    border-color: rgba(127, 159, 110, 0.42);
+    color: var(--green-strong);
+}
+
+.rating-change--negative {
+    background: rgba(201, 111, 91, 0.16);
+    border-color: rgba(201, 111, 91, 0.42);
+    color: #e99a86;
+}
+
+.rating-change--neutral,
+.rating-change--new {
+    background: rgba(214, 167, 86, 0.10);
+    border-color: rgba(214, 167, 86, 0.30);
+    color: var(--muted);
 }
 
 .rating-strip__empty {
@@ -815,7 +845,7 @@ th {
     }
 
     .hero-rating-groups {
-        grid-template-columns: repeat(3, minmax(118px, 1fr));
+        grid-template-columns: 1fr;
     }
 
     .metric-grid,

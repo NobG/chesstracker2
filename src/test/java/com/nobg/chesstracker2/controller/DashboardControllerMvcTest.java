@@ -353,28 +353,35 @@ class DashboardControllerMvcTest {
 
         assertThat(html).contains(
                 "Aktuelle Ratings",
-                "Online",
-                "Blitz",
+                "Schachratings",
+                "Lichess Blitz",
                 "1850",
-                "Rapid",
+                "+150",
+                "Lichess Rapid",
                 "1780",
-                "Classical",
-                "Offiziell",
+                "+130",
+                "Lichess Classical",
+                "1600",
+                "neu",
                 "DWZ",
                 "1450",
-                "FIDE",
-                "Training",
-                "Taktik",
+                "+50",
+                "FIDE Elo",
+                "1500",
+                "Aimchess Ratings",
+                "Tactics",
                 "2200",
-                "Endspiel",
-                "1588"
+                "+100",
+                "Endgame",
+                "1588",
+                "neu"
         );
         assertThat(html)
-                .doesNotContain("1700", "1650", "1600", "1500", ">null<", "Noch keine Ratings erfasst.");
+                .doesNotContain(">null<", "Noch keine Ratings erfasst.");
     }
 
     @Test
-    void todayShowsMissingTrainingScoresAsPlaceholders() throws Exception {
+    void todayOmitsAimchessRatingGroupWhenNoTrainingScoresExist() throws Exception {
         ratingSnapshotRepository.save(snapshot(APP_TODAY, 1643, 1624, 1760, 1627, 1670));
 
         MvcResult result = mockMvc.perform(get("/today"))
@@ -383,17 +390,13 @@ class DashboardControllerMvcTest {
         String html = result.getResponse().getContentAsString();
 
         assertThat(html).contains(
-                "Online",
+                "Schachratings",
+                "Lichess Blitz",
                 "1643",
-                "Offiziell",
-                "1670",
-                "Training",
-                "Taktik",
-                "Endspiel"
+                "FIDE Elo",
+                "1670"
         );
-        assertThat(html).containsPattern("Taktik\\s*</span>\\s*<strong class=\"hero-rating-value\">-</strong>");
-        assertThat(html).containsPattern("Endspiel\\s*</span>\\s*<strong class=\"hero-rating-value\">-</strong>");
-        assertThat(html).doesNotContain("2215", "1588", ">null<", "Noch keine Ratings erfasst.");
+        assertThat(html).doesNotContain("Aimchess Ratings", "2215", "1588", ">null<", "Noch keine Ratings erfasst.");
     }
 
     @Test
@@ -410,17 +413,89 @@ class DashboardControllerMvcTest {
         String html = result.getResponse().getContentAsString();
 
         assertThat(html).contains(
-                "Blitz",
+                "Lichess Blitz",
                 "1643",
                 "DWZ",
                 "1627",
-                "Training",
-                "Taktik",
+                "Aimchess Ratings",
+                "Tactics",
                 "2215",
-                "Endspiel",
-                "1588"
+                "+115",
+                "Endgame",
+                "1588",
+                "+88"
         );
         assertThat(html).doesNotContain("2100", "1500", ">null<");
+    }
+
+    @Test
+    void todayShowsManualRatingChangesWithPositiveAndNegativeValues() throws Exception {
+        ratingSnapshotRepository.save(snapshot(LocalDate.of(2026, 6, 1), 1840, 1793, null, 1450, null));
+        ratingSnapshotRepository.save(snapshot(APP_TODAY, 1850, 1785, null, 1450, null));
+
+        MvcResult result = mockMvc.perform(get("/today"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(
+                "Schachratings",
+                "Lichess Blitz",
+                "1850",
+                "+10",
+                "rating-change--positive",
+                "Lichess Rapid",
+                "1785",
+                "-8",
+                "rating-change--negative",
+                "DWZ",
+                "1450",
+                "+/-0",
+                "rating-change--neutral"
+        );
+    }
+
+    @Test
+    void todaySkipsNullAimchessScoresWhenCalculatingPreviousChange() throws Exception {
+        TrainingCategory tactics = tactics();
+        saveScore(LocalDate.of(2026, 6, 12), tactics, 1994);
+        saveScore(LocalDate.of(2026, 6, 13), tactics, null);
+        saveScore(LocalDate.of(2026, 6, 15), tactics, 1958);
+
+        MvcResult result = mockMvc.perform(get("/today"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(
+                "Aimchess Ratings",
+                "Tactics",
+                "1958",
+                "-36",
+                "rating-change--negative"
+        );
+        assertThat(html).doesNotContain(">1994<");
+    }
+
+    @Test
+    void todayShowsNewForSingleAimchessScoreAndExcludesTacticsChallenge() throws Exception {
+        saveScore(APP_TODAY, defender(), 1922);
+        saveScore(APP_TODAY, tacticsChallenge(), 38);
+
+        MvcResult result = mockMvc.perform(get("/today"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+        String aimchessRatings = sectionContaining(html, "Aimchess Ratings");
+
+        assertThat(aimchessRatings).contains(
+                "Defender",
+                "1922",
+                "neu",
+                "rating-change--new"
+        );
+        assertThat(aimchessRatings).doesNotContain("Tactics Challenge", "38");
+        assertThat(html).contains("Tactics Challenge", "data-points-only=\"true\"");
     }
 
     @Test
@@ -719,6 +794,10 @@ class DashboardControllerMvcTest {
         return categoryByName("Tactics Challenge");
     }
 
+    private TrainingCategory defender() {
+        return categoryByName("Defender");
+    }
+
     private TrainingCategory categoryByName(String name) {
         return categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc().stream()
                 .filter(category -> name.equals(category.getName()))
@@ -753,6 +832,16 @@ class DashboardControllerMvcTest {
         assertThat(rowStart).isNotNegative();
         assertThat(rowEnd).isNotNegative();
         return html.substring(rowStart, rowEnd + "</tr>".length());
+    }
+
+    private String sectionContaining(String html, String text) {
+        int textIndex = html.indexOf(text);
+        assertThat(textIndex).isNotNegative();
+        int sectionStart = html.lastIndexOf("<div class=\"hero-rating-group", textIndex);
+        int sectionEnd = html.indexOf("</div>\n                    </div>", textIndex);
+        assertThat(sectionStart).isNotNegative();
+        assertThat(sectionEnd).isNotNegative();
+        return html.substring(sectionStart, sectionEnd);
     }
 
     private RatingSnapshot snapshot(

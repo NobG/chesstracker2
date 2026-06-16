@@ -15,4 +15,6 @@ public interface DailyTrainingEntryRepository extends JpaRepository<DailyTrainin
     Optional<DailyTrainingEntry> findByTrainingDateAndCategoryId(LocalDate trainingDate, Long categoryId);
 
     Optional<DailyTrainingEntry> findFirstByCategory_KeyAndScoreIsNotNullOrderByTrainingDateDescUpdatedAtDescIdDesc(String categoryKey);
+
+    List<DailyTrainingEntry> findTop2ByCategoryIdAndScoreIsNotNullOrderByTrainingDateDescUpdatedAtDescIdDesc(Long categoryId);
 }

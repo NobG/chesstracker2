@@ -65,7 +65,12 @@ class RatingControllerMvcTest {
                 "name=\"_csrf\""
         );
         assertInputValue(html, "snapshotDate", "2026-06-09");
-        assertThat(html).doesNotContain("name=\"tacticsRating\"", "name=\"endgameRating\"");
+        assertThat(html).doesNotContain(
+                "name=\"tacticsRating\"",
+                "name=\"endgameRating\"",
+                "name=\"aimchess",
+                "Aimchess Ratings"
+        );
     }
 
     @Test

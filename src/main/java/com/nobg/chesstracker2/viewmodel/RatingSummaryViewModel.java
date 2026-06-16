@@ -1,16 +1,13 @@
 package com.nobg.chesstracker2.viewmodel;
 
-import java.time.LocalDate;
+import java.util.List;
 
 public record RatingSummaryViewModel(
-        LocalDate snapshotDate,
-        Integer lichessBlitz,
-        Integer lichessRapid,
-        Integer lichessClassical,
-        Integer dwz,
-        Integer fideElo,
-        Integer tacticsScore,
-        Integer endgameScore,
-        boolean hasAnyRating
+        List<RatingValueViewModel> manualRatings,
+        List<RatingValueViewModel> aimchessRatings
 ) {
+
+    public boolean hasAnyRating() {
+        return !manualRatings.isEmpty() || !aimchessRatings.isEmpty();
+    }
 }
