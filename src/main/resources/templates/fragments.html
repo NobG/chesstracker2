@@ -105,7 +105,7 @@
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         <button type="submit" class="secondary-button">Logout</button>
     </form>
-    <section class="app-hero">
+    <section class="app-hero" th:if="${compactHeader != true}">
         <div class="app-brand">
             <div class="app-logo" aria-hidden="true">
                 <svg class="app-logo__piece" focusable="false">

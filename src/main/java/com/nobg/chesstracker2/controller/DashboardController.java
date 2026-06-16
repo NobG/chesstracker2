@@ -165,6 +165,7 @@ public class DashboardController {
         model.addAttribute("pageTitle", "Kategorien");
         model.addAttribute("categories", statsService.categoryOverview());
         model.addAttribute("ratingSummary", ratingSummaryService.latestSummary());
+        model.addAttribute("compactHeader", true);
         return "categories";
     }
 }

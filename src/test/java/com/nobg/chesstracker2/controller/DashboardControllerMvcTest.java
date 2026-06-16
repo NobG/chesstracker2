@@ -632,9 +632,13 @@ class DashboardControllerMvcTest {
                         "class=\"category-icon\"",
                         "href=\"#icon-category-target\"",
                         "class=\"beta-badge\"",
+                        "Kategorie-Statistik",
+                        "class=\"entry-grid\"",
+                        "class=\"entry-card\"",
                         "Tactics Challenge",
                         "Tactics"
-                );
+                )
+                .doesNotContain("class=\"app-hero\"");
     }
 
     @Test
