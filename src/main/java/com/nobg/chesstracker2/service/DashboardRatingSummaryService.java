@@ -162,7 +162,7 @@ public class DashboardRatingSummaryService {
 
     private List<RatingValueViewModel> latestAimchessRatings() {
         return categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc().stream()
-                .filter(category -> !TrainingCategoryRules.isPointsOnlyCategory(category))
+                .filter(TrainingCategoryRules::isRatingCategory)
                 .map(this::latestAimchessRating)
                 .filter(rating -> rating.value() != null)
                 .toList();
@@ -170,7 +170,7 @@ public class DashboardRatingSummaryService {
 
     private List<RatingValueViewModel> periodAimchessRatings(LocalDate periodStart, LocalDate periodEnd, String changeSuffix) {
         return categoryRepository.findByActiveTrueOrderBySortOrderAscNameAsc().stream()
-                .filter(category -> !TrainingCategoryRules.isPointsOnlyCategory(category))
+                .filter(TrainingCategoryRules::isRatingCategory)
                 .map(category -> periodAimchessRating(category, periodStart, periodEnd, changeSuffix))
                 .filter(rating -> rating.value() != null)
                 .toList();

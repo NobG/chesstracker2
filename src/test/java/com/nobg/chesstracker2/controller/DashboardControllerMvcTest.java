@@ -487,8 +487,9 @@ class DashboardControllerMvcTest {
     }
 
     @Test
-    void todayShowsNewForSingleAimchessScoreAndExcludesTacticsChallenge() throws Exception {
+    void todayShowsNewForSingleAimchessScoreAndExcludesUnratedCategories() throws Exception {
         saveScore(APP_TODAY, defender(), 1922);
+        saveScore(APP_TODAY, trainer360(), 1400);
         saveScore(APP_TODAY, tacticsChallenge(), 38);
 
         MvcResult result = mockMvc.perform(get("/today"))
@@ -503,8 +504,8 @@ class DashboardControllerMvcTest {
                 "neu",
                 "rating-change--new"
         );
-        assertThat(aimchessRatings).doesNotContain("Tactics Challenge", "38");
-        assertThat(html).contains("Tactics Challenge", "data-points-only=\"true\"");
+        assertThat(aimchessRatings).doesNotContain("360 Trainer", "1400", "Tactics Challenge", "38");
+        assertThat(html).contains("360 Trainer", "Tactics Challenge", "data-points-only=\"true\"");
     }
 
     @Test
@@ -947,6 +948,10 @@ class DashboardControllerMvcTest {
 
     private TrainingCategory tacticsChallenge() {
         return categoryByName("Tactics Challenge");
+    }
+
+    private TrainingCategory trainer360() {
+        return categoryByName("360 Trainer");
     }
 
     private TrainingCategory defender() {

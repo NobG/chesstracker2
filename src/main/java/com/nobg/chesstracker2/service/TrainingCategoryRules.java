@@ -6,12 +6,19 @@ import com.nobg.chesstracker2.model.TrainingCategory;
 public final class TrainingCategoryRules {
 
     public static final String TACTICS_CHALLENGE_KEY = "tactics-challenge";
+    public static final String TRAINER_360_KEY = "360-trainer";
 
     private TrainingCategoryRules() {
     }
 
     public static boolean isPointsOnlyCategory(TrainingCategory category) {
         return category != null && TACTICS_CHALLENGE_KEY.equals(category.getKey());
+    }
+
+    public static boolean isRatingCategory(TrainingCategory category) {
+        return category != null
+                && !isPointsOnlyCategory(category)
+                && !TRAINER_360_KEY.equals(category.getKey());
     }
 
     public static boolean isPointsOnlyEntry(DailyTrainingEntry entry) {
