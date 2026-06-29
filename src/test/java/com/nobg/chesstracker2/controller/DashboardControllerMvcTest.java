@@ -50,21 +50,21 @@ class DashboardControllerMvcTest {
     private static final LocalDate APP_TODAY = LocalDate.of(2026, 6, 9);
 
     private static final List<String> AIMCHESS_CATEGORIES = List.of(
-            "Advantage Capitalization",
+            "Tactics Challenge",
             "Tactics",
+            "Endgame",
+            "Advantage Capitalization",
             "Opening Improver",
             "Practice visualization",
             "Blunder Preventer",
             "360 Trainer",
             "Intuition Trainer",
             "Retry Mistakes",
-            "Endgame",
             "Defender",
             "Time Trainer",
             "Blindfold Tactics",
             "Checkmate Patterns",
-            "Opening Trainer",
-            "Tactics Challenge"
+            "Opening Trainer"
     );
 
     private static final List<String> OLD_CATEGORY_NAMES = List.of(
@@ -274,8 +274,8 @@ class DashboardControllerMvcTest {
         assertThat(html).contains(
                 "Tactics Challenge",
                 "data-points-only=\"true\"",
-                "name=\"entries[14].result\"",
-                "name=\"entries[14].score\"",
+                "name=\"entries[0].result\"",
+                "name=\"entries[0].score\"",
                 "<span>Punkte</span>",
                 "placeholder=\"15\""
         );
@@ -594,6 +594,8 @@ class DashboardControllerMvcTest {
     @Test
     void todayMarksWorkedCategoryAndKeepsSortedFieldBinding() throws Exception {
         TrainingCategory tactics = tactics();
+        TrainingCategory challenge = tacticsChallenge();
+        TrainingCategory endgame = endgame();
         LocalDate today = APP_TODAY;
         DailyTrainingEntry entry = new DailyTrainingEntry();
         entry.setTrainingDate(today);
@@ -620,10 +622,11 @@ class DashboardControllerMvcTest {
                 "name=\"entries[0].note\""
         );
         assertThat(html).doesNotContain("name=\"form.entries");
-        assertThat(html.indexOf("Tactics")).isLessThan(html.indexOf("Advantage Capitalization"));
         assertThat(html.indexOf("name=\"entries[0].categoryId\""))
                 .isLessThan(html.indexOf("name=\"entries[1].categoryId\""));
         assertThat(html).contains("name=\"entries[0].categoryId\" value=\"" + tactics.getId() + "\"");
+        assertThat(html).contains("name=\"entries[1].categoryId\" value=\"" + challenge.getId() + "\"");
+        assertThat(html).contains("name=\"entries[2].categoryId\" value=\"" + endgame.getId() + "\"");
     }
 
     @Test
@@ -659,7 +662,7 @@ class DashboardControllerMvcTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String html = result.getResponse().getContentAsString();
-        String tacticsCard = cardContaining(html, "Tactics");
+        String tacticsCard = cardContaining(html, "<span>Tactics</span>");
 
         assertThat(tacticsCard).contains(
                 "Aktuelles Rating",
@@ -721,7 +724,7 @@ class DashboardControllerMvcTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String html = result.getResponse().getContentAsString();
-        String tacticsCard = cardContaining(html, "Tactics");
+        String tacticsCard = cardContaining(html, "<span>Tactics</span>");
 
         assertThat(tacticsCard)
                 .contains("Aktuelles Rating", ">-</strong>")
