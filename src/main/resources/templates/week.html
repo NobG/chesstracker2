@@ -9,11 +9,44 @@
         <h1 th:text="'KW ' + ${stats.week()} + ' / ' + ${stats.year()}">KW</h1>
         <p th:text="${stats.summary()}">Zusammenfassung</p>
     </section>
+    <div class="alert success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
     <section class="metric-grid">
         <article class="metric-card"><span>Trainingstage</span><strong th:text="${stats.trainingDays()}">0</strong></article>
         <article class="metric-card"><span>Aufgaben</span><strong th:text="${stats.totalTasks()}">0</strong></article>
         <article class="metric-card"><span>Quote</span><strong th:text="${stats.successRate() == null ? '-' : stats.successRate() + '%'}">-</strong></article>
         <article class="metric-card"><span>Zeit</span><strong th:text="${stats.totalDurationMinutes()} + ' min'">0 min</strong></article>
+    </section>
+    <section class="panel weekly-goal-panel">
+        <div class="section-title">
+            <div>
+                <p class="eyebrow">Aimchess</p>
+                <h2>Wochenabschluss</h2>
+            </div>
+            <span class="goal-status"
+                  th:classappend="' goal-status--' + ${goalClosure.tone()}"
+                  th:text="${goalClosure.displayText()}">Aimchess Wochenabschluss noch nicht erfasst</span>
+        </div>
+        <p class="goal-note-display" th:if="${goalClosure.note() != null}" th:text="${goalClosure.note()}">Notiz</p>
+        <form class="weekly-goal-form" method="post"
+              th:action="@{/week/{year}/{week}/goal-closure(year=${stats.year()}, week=${stats.week()})}"
+              th:object="${goalClosureForm}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <div class="weekly-goal-grid">
+                <label>Status
+                    <select th:field="*{status}" required>
+                        <option value="NOT_RECORDED">Nicht erfasst</option>
+                        <option value="ACHIEVED">Erreicht</option>
+                        <option value="MISSED">Nicht erreicht</option>
+                    </select>
+                </label>
+                <label>Notiz
+                    <textarea rows="3" maxlength="1000" th:field="*{note}"
+                              placeholder="Rapid games: 10/10&#10;Daily plan: 5/5&#10;Tactics challenge: 5/5"></textarea>
+                </label>
+            </div>
+            <button class="primary-button" type="submit">Wochenabschluss speichern</button>
+        </form>
     </section>
     <section class="two-column">
         <div class="panel">

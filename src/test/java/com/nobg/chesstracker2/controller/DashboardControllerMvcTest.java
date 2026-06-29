@@ -14,11 +14,14 @@ import com.nobg.chesstracker2.model.DailyTrainingEntry;
 import com.nobg.chesstracker2.model.DailyCompletionStatus;
 import com.nobg.chesstracker2.model.TrainingCategory;
 import com.nobg.chesstracker2.model.RatingSnapshot;
+import com.nobg.chesstracker2.model.WeeklyGoalClosure;
+import com.nobg.chesstracker2.model.WeeklyGoalClosureStatus;
 import com.nobg.chesstracker2.repository.DailyNoteRepository;
 import com.nobg.chesstracker2.repository.DailyTrainingEntryRepository;
 import com.nobg.chesstracker2.repository.MotivationQuoteRepository;
 import com.nobg.chesstracker2.repository.RatingSnapshotRepository;
 import com.nobg.chesstracker2.repository.TrainingCategoryRepository;
+import com.nobg.chesstracker2.repository.WeeklyGoalClosureRepository;
 import com.nobg.chesstracker2.service.AppDateProvider;
 import com.nobg.chesstracker2.service.MotivationQuoteService;
 import java.time.LocalDate;
@@ -95,6 +98,9 @@ class DashboardControllerMvcTest {
     private RatingSnapshotRepository ratingSnapshotRepository;
 
     @Autowired
+    private WeeklyGoalClosureRepository weeklyGoalClosureRepository;
+
+    @Autowired
     private MotivationQuoteService quoteService;
 
     @Autowired
@@ -112,6 +118,7 @@ class DashboardControllerMvcTest {
         entryRepository.deleteAll();
         noteRepository.deleteAll();
         ratingSnapshotRepository.deleteAll();
+        weeklyGoalClosureRepository.deleteAll();
     }
 
     @Test
@@ -788,6 +795,83 @@ class DashboardControllerMvcTest {
         assertThat(challengeRow)
                 .contains("Tactics Challenge", "Punkte-Kategorie", "<td>-</td>")
                 .doesNotContain("15/18", "83%");
+    }
+
+    @Test
+    void weekShowsGoalClosureSectionWithDefaultStatus() throws Exception {
+        MvcResult result = mockMvc.perform(get("/week/2026/27").with(user("norbert")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        assertThat(html).contains(
+                "Aimchess",
+                "Wochenabschluss",
+                "Aimchess Wochenabschluss noch nicht erfasst",
+                "name=\"status\"",
+                "value=\"ACHIEVED\"",
+                "value=\"MISSED\"",
+                "name=\"note\"",
+                "Wochenabschluss speichern",
+                "action=\"/week/2026/27/goal-closure\""
+        );
+    }
+
+    @Test
+    void postWeekGoalClosureSavesAchievedStatusAndNote() throws Exception {
+        mockMvc.perform(post("/week/2026/27/goal-closure")
+                        .with(csrf())
+                        .param("status", "ACHIEVED")
+                        .param("note", "Play 10 Rapid games: 10/10\nComplete daily plan: 5/5"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/week/2026/27"));
+
+        WeeklyGoalClosure saved = weeklyGoalClosureRepository.findByIsoYearAndIsoWeek(2026, 27).orElseThrow();
+        assertThat(saved.getStatus()).isEqualTo(WeeklyGoalClosureStatus.ACHIEVED);
+        assertThat(saved.getNote()).isEqualTo("Play 10 Rapid games: 10/10\nComplete daily plan: 5/5");
+
+        MvcResult result = mockMvc.perform(get("/week/2026/27").with(user("norbert")))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+        assertThat(html).contains(
+                "Aimchess Wochenziel erreicht",
+                "Play 10 Rapid games: 10/10",
+                "Complete daily plan: 5/5"
+        );
+    }
+
+    @Test
+    void postWeekGoalClosureUpdatesExistingStatusForSameWeek() throws Exception {
+        mockMvc.perform(post("/week/2026/27/goal-closure")
+                        .with(csrf())
+                        .param("status", "MISSED")
+                        .param("note", "1/5 Tactics Challenge"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/week/2026/27"));
+
+        mockMvc.perform(post("/week/2026/27/goal-closure")
+                        .with(csrf())
+                        .param("status", "ACHIEVED")
+                        .param("note", "Alles erreicht"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/week/2026/27"));
+
+        assertThat(weeklyGoalClosureRepository.findAll()).hasSize(1);
+        WeeklyGoalClosure saved = weeklyGoalClosureRepository.findByIsoYearAndIsoWeek(2026, 27).orElseThrow();
+        assertThat(saved.getStatus()).isEqualTo(WeeklyGoalClosureStatus.ACHIEVED);
+        assertThat(saved.getNote()).isEqualTo("Alles erreicht");
+    }
+
+    @Test
+    void postWeekGoalClosureRejectsInvalidStatus() throws Exception {
+        mockMvc.perform(post("/week/2026/27/goal-closure")
+                        .with(csrf())
+                        .param("status", "DONE"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/week/2026/27"));
+
+        assertThat(weeklyGoalClosureRepository.findByIsoYearAndIsoWeek(2026, 27)).isEmpty();
     }
 
     @Test

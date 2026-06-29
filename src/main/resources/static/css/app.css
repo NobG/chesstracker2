@@ -559,6 +559,7 @@ label {
 }
 
 input,
+select,
 textarea {
     background: var(--surface-strong);
     border: 1px solid var(--line);
@@ -572,7 +573,8 @@ textarea {
 
 input[readonly],
 textarea[readonly],
-input:disabled {
+input:disabled,
+select:disabled {
     color: var(--muted);
     cursor: not-allowed;
     opacity: 0.82;
@@ -597,6 +599,59 @@ textarea {
 
 .rating-note {
     margin-top: 12px;
+}
+
+.weekly-goal-panel {
+    margin-bottom: 18px;
+}
+
+.weekly-goal-form {
+    display: grid;
+    gap: 12px;
+}
+
+.weekly-goal-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(180px, 0.45fr) minmax(0, 1fr);
+}
+
+.goal-status {
+    border: 1px solid rgba(242, 234, 220, 0.12);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1;
+    padding: 8px 10px;
+    white-space: nowrap;
+}
+
+.goal-status--positive {
+    background: rgba(127, 159, 110, 0.16);
+    border-color: rgba(127, 159, 110, 0.42);
+    color: var(--green-strong);
+}
+
+.goal-status--negative {
+    background: rgba(201, 111, 91, 0.16);
+    border-color: rgba(201, 111, 91, 0.42);
+    color: #e99a86;
+}
+
+.goal-status--neutral {
+    background: rgba(214, 167, 86, 0.10);
+    border-color: rgba(214, 167, 86, 0.30);
+}
+
+.goal-note-display {
+    background: rgba(242, 234, 220, 0.04);
+    border: 1px solid rgba(242, 234, 220, 0.10);
+    border-radius: 8px;
+    color: var(--text);
+    margin: 0 0 14px;
+    padding: 12px;
+    white-space: pre-wrap;
 }
 
 .form-hint {
@@ -861,6 +916,10 @@ th {
     .rating-grid {
         grid-template-columns: 1fr;
     }
+
+    .weekly-goal-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 640px) {
@@ -1054,12 +1113,14 @@ body {
 }
 
 input,
+select,
 textarea {
     border-radius: 8px;
     transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
 
 input:focus,
+select:focus,
 textarea:focus {
     border-color: rgba(214, 167, 86, 0.72);
     box-shadow: 0 0 0 3px rgba(214, 167, 86, 0.14);

@@ -1,10 +1,12 @@
 package com.nobg.chesstracker2.controller;
 
 import com.nobg.chesstracker2.dto.TrainingDayForm;
+import com.nobg.chesstracker2.dto.WeeklyGoalClosureForm;
 import com.nobg.chesstracker2.service.AppDateProvider;
 import com.nobg.chesstracker2.service.DashboardRatingSummaryService;
 import com.nobg.chesstracker2.service.StatsService;
 import com.nobg.chesstracker2.service.TrainingEntryService;
+import com.nobg.chesstracker2.service.WeeklyGoalClosureService;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -25,17 +27,20 @@ public class DashboardController {
     private final StatsService statsService;
     private final AppDateProvider appDateProvider;
     private final DashboardRatingSummaryService ratingSummaryService;
+    private final WeeklyGoalClosureService weeklyGoalClosureService;
 
     public DashboardController(
             TrainingEntryService trainingEntryService,
             StatsService statsService,
             AppDateProvider appDateProvider,
-            DashboardRatingSummaryService ratingSummaryService
+            DashboardRatingSummaryService ratingSummaryService,
+            WeeklyGoalClosureService weeklyGoalClosureService
     ) {
         this.trainingEntryService = trainingEntryService;
         this.statsService = statsService;
         this.appDateProvider = appDateProvider;
         this.ratingSummaryService = ratingSummaryService;
+        this.weeklyGoalClosureService = weeklyGoalClosureService;
     }
 
     @GetMapping("/")
@@ -142,7 +147,25 @@ public class DashboardController {
         model.addAttribute("pageTitle", "Woche " + week);
         model.addAttribute("stats", statsService.weekStats(year, week));
         model.addAttribute("ratingSummary", ratingSummaryService.forWeek(start, start.plusDays(6)));
+        model.addAttribute("goalClosure", weeklyGoalClosureService.view(year, week));
+        model.addAttribute("goalClosureForm", weeklyGoalClosureService.form(year, week));
         return "week";
+    }
+
+    @PostMapping("/week/{year}/{week}/goal-closure")
+    public String saveWeekGoalClosure(
+            @PathVariable int year,
+            @PathVariable int week,
+            @ModelAttribute("goalClosureForm") WeeklyGoalClosureForm form,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            weeklyGoalClosureService.save(year, week, form);
+            redirectAttributes.addFlashAttribute("successMessage", "Aimchess Wochenabschluss gespeichert.");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/week/" + year + "/" + week;
     }
 
     @GetMapping("/month")

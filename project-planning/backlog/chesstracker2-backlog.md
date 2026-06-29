@@ -14,10 +14,11 @@
 - Rating-Snapshots manuell erfassen und anzeigen
 - Session-/Login-Ablauf benutzerfreundlicher machen: 12h Session-Timeout, eigene 403-Seite und Browser-Draft fuer `/today`
 - Ratingaenderungen fuer manuelle Ratings und Aimchess-Scores auf `/today` anzeigen
+- Wochenziel-Status auf der Wochenseite erfassen
 
 ## Empfohlener naechster Umsetzungspunkt
 
-- Wochenziel-Status auf der Wochenseite erfassen: Button/Feld `Aimchess Wochenziel geschafft`, damit pro Kalenderwoche gespeichert werden kann, ob das externe Aimchess-Wochenziel erreicht wurde. Keine Detailerfassung der einzelnen Aimchess-Ziele noetig; einfacher Ja/Nein-Status reicht.
+- Noch offen.
 
 ## Produkt-Backlog
 
